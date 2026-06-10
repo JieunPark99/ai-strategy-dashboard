@@ -1,0 +1,2086 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI전략팀 업무 흐름 대시보드</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:#09111f; --surface:#111c2e; --surface2:#172035; --border:#1e2d47;
+      --accent:#3b82f6; --accent2:#8b5cf6; --accent3:#10b981;
+      --accent4:#f59e0b; --accent5:#ef4444; --accent6:#06b6d4;
+      --text:#e2e8f0; --muted:#64748b; --shadow:rgba(0,0,0,.4);
+      --header-bg:linear-gradient(135deg,#09111f,#111c2e);
+      --summary-bg:linear-gradient(135deg,rgba(59,130,246,.07),rgba(139,92,246,.07));
+      --summary-border:rgba(59,130,246,.25);
+      --summary-text:#cbd5e1; --summary-strong:#fff;
+    }
+    html.light {
+      --bg:#f1f5f9; --surface:#ffffff; --surface2:#f8fafc; --border:#e2e8f0;
+      --accent:#2563eb; --accent2:#7c3aed; --accent3:#059669;
+      --accent4:#d97706; --accent5:#dc2626; --accent6:#0891b2;
+      --text:#0f172a; --muted:#94a3b8; --shadow:rgba(0,0,0,.1);
+      --header-bg:linear-gradient(135deg,#ffffff,#f1f5f9);
+      --summary-bg:linear-gradient(135deg,rgba(37,99,235,.05),rgba(124,58,237,.05));
+      --summary-border:rgba(37,99,235,.2);
+      --summary-text:#334155; --summary-strong:#0f172a;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;transition:background .3s,color .3s;}
+
+    /* ── Header ── */
+    header{
+      padding:14px 48px; border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between;
+      background:var(--header-bg); position:sticky; top:0; z-index:100;
+      backdrop-filter:blur(8px);
+      min-height:60px;
+    }
+    .logo-area{display:flex;align-items:center;gap:12px; flex:1; min-width:0;}
+    .logo-badge{
+      width:36px; height:36px; flex-shrink:0;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;
+    }
+    .logo-text h1{font-size:15px;font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+    .logo-text span{font-size:10px;color:var(--muted);font-family:'Space Mono',monospace;}
+    .header-right{display:flex;align-items:center;gap:8px; flex-shrink:0;}
+
+    /* 햄버거 버튼 — 모바일에서만 표시 */
+    .hamburger-btn {
+      display: none; /* 데스크탑에서는 숨김 */
+      width: 36px; height: 36px; border-radius: 9px;
+      background: var(--surface2); border: 1px solid var(--border);
+      font-size: 18px; cursor: pointer;
+      align-items: center; justify-content: center;
+      transition: background .2s; line-height: 1;
+      color: var(--text);
+    }
+    .hamburger-btn:hover { background: var(--border); }
+    .hamburger-btn.open { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* 햄버거 드롭다운 */
+    .hamburger-menu {
+      display: none; /* 항상 숨김 — JS로 토글 */
+      position: fixed;
+      top: 52px; right: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.3);
+      z-index: 200;
+      min-width: 180px;
+      overflow: hidden;
+      flex-direction: column;
+    }
+    .hamburger-menu.open { display: flex; }
+    .hmenu-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 13px 18px;
+      background: transparent; border: none;
+      color: var(--muted); font-family: 'Noto Sans KR', sans-serif;
+      font-size: 13px; font-weight: 500;
+      cursor: pointer; text-align: left;
+      border-bottom: 1px solid var(--border);
+      transition: background .15s, color .15s;
+    }
+    .hmenu-item:last-child { border-bottom: none; }
+    .hmenu-item:hover { background: var(--surface2); color: var(--text); }
+    .hmenu-item.active {
+      background: rgba(59,130,246,.12);
+      color: var(--accent); font-weight: 700;
+    }
+
+    /* 모바일 헤더 — 한 줄 유지 */
+    @media(max-width:768px){
+      header{ padding:10px 14px; min-height:52px; }
+      .logo-badge{ width:32px; height:32px; font-size:15px; }
+      .logo-text h1{ font-size:13px; }
+      .logo-text span{ display:none; }
+      .week-badge{ display:none; }
+      .hamburger-btn{ display:flex; } /* 모바일에서만 표시 */
+      .tab-bar{ display:none; } /* 모바일에서 탭 바 숨김 */
+    }
+
+    /* ── Tab bar (헤더 아래 독립 영역) ── */
+    .tab-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 48px;
+      position: sticky; top: 60px; z-index: 99;
+      backdrop-filter: blur(8px);
+    }
+
+    /* Tab nav */
+    .tab-nav{
+      display: flex; gap: 4px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 4px;
+      overflow-x: auto; overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .tab-nav::-webkit-scrollbar { display: none; }
+    .tab-btn{
+      padding: 7px 14px; border-radius: 7px; border: none; background: transparent;
+      color: var(--muted); font-family: 'Noto Sans KR', sans-serif;
+      font-size: 12px; font-weight: 500;
+      cursor: pointer; transition: all .2s;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .tab-btn.active { background: var(--accent); color: #fff; }
+    .tab-btn:not(.active):hover { color: var(--text); background: var(--border); }
+
+    /* 모바일 탭 바 */
+    @media(max-width:768px){
+      .tab-bar {
+        padding: 8px 10px;
+        top: 52px; /* 모바일 헤더 높이에 맞춤 */
+      }
+      .tab-nav {
+        border-radius: 8px;
+        /* 오른쪽 끝 페이드 힌트 */
+        -webkit-mask-image: linear-gradient(to right, black 82%, transparent 100%);
+        mask-image: linear-gradient(to right, black 82%, transparent 100%);
+      }
+      .tab-btn { font-size: 11px; padding: 6px 12px; }
+      main { padding: 14px 14px 48px; }
+    }
+
+    .week-badge{
+      background:var(--surface2);border:1px solid var(--border);
+      padding:5px 12px;border-radius:18px;
+      font-size:11px;color:var(--accent4);font-family:'Space Mono',monospace;font-weight:700;
+    }
+    .theme-toggle{
+      width:36px;height:36px;border-radius:9px;
+      background:var(--surface2);border:1px solid var(--border);
+      font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+      transition:background .2s,transform .15s;line-height:1;
+    }
+    .theme-toggle:hover{background:var(--border);transform:scale(1.08);}
+
+    /* ── Layout ── */
+    main{padding:28px 48px 64px;}
+    .tab-panel{display:none;}
+    .tab-panel.active{display:block;}
+
+    /* Section */
+    .section-title{
+      font-size:10px;font-weight:700;letter-spacing:2px;
+      text-transform:uppercase;color:var(--muted);margin-bottom:12px;padding-left:2px;
+    }
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;}
+    .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:18px;}
+    .full{grid-column:1/-1;}
+
+    /* Card */
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;}
+    .card-title{font-size:13px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+    .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+
+    /* KPI */
+    .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+    .kpi-card{
+      background:var(--surface);border:1px solid var(--border);
+      border-radius:13px;padding:20px 22px;position:relative;overflow:hidden;
+      transition:transform .2s,box-shadow .2s;
+    }
+    .kpi-card:hover{transform:translateY(-2px);box-shadow:0 8px 28px var(--shadow);}
+    .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:13px 13px 0 0;}
+    .kpi-card.blue::before{background:var(--accent);}
+    .kpi-card.green::before{background:var(--accent3);}
+    .kpi-card.purple::before{background:var(--accent2);}
+    .kpi-card.amber::before{background:var(--accent4);}
+    .kpi-card.cyan::before{background:var(--accent6);}
+    .kpi-label{font-size:10px;color:var(--muted);margin-bottom:7px;}
+    .kpi-val{font-size:32px;font-weight:900;font-family:'Space Mono',monospace;}
+    .kpi-card.blue .kpi-val{color:var(--accent);}
+    .kpi-card.green .kpi-val{color:var(--accent3);}
+    .kpi-card.purple .kpi-val{color:var(--accent2);}
+    .kpi-card.amber .kpi-val{color:var(--accent4);}
+    .kpi-card.cyan .kpi-val{color:var(--accent6);}
+    .kpi-sub{font-size:10px;color:var(--muted);margin-top:4px;}
+
+    /* AI Summary */
+    .ai-summary{
+      background:var(--summary-bg);border:1px solid var(--summary-border);
+      border-radius:14px;padding:24px 28px;margin-bottom:22px;position:relative;overflow:hidden;
+    }
+    .ai-summary::before{
+      content:'';position:absolute;top:0;left:0;right:0;height:2px;
+      background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent3));
+    }
+    .ai-summary-label{font-size:9px;letter-spacing:2px;color:var(--accent);font-weight:700;text-transform:uppercase;margin-bottom:9px;}
+    .ai-summary p{font-size:13px;line-height:1.9;color:var(--summary-text);}
+    .ai-summary strong{color:var(--summary-strong);font-weight:700;}
+
+    /* ── Mega Timeline ── */
+    .mega-tl{display:flex;flex-direction:column;gap:0;}
+    .week-block{
+      display:grid;grid-template-columns:130px 1fr;gap:0;
+      border-left:2px solid var(--border);margin-left:12px;
+    }
+    .week-label-col{
+      padding:0 20px 0 0;position:relative;
+    }
+    .week-label-col::before{
+      content:'';position:absolute;left:-7px;top:20px;
+      width:12px;height:12px;border-radius:50%;
+      border:2px solid var(--accent);background:var(--bg);
+    }
+    .week-label-col.done::before{background:var(--accent3);border-color:var(--accent3);}
+    .week-chip{
+      background:var(--surface2);border:1px solid var(--border);
+      border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;
+      color:var(--accent4);font-family:'Space Mono',monospace;display:inline-block;margin-top:14px;
+    }
+    .week-content{padding:14px 0 28px 20px;}
+    .week-heading{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:10px;letter-spacing:.5px;}
+
+    .event-list{display:flex;flex-direction:column;gap:7px;}
+    .event-item{
+      background:var(--surface2);border-radius:9px;padding:11px 14px;
+      border-left:3px solid var(--border);
+      display:grid;grid-template-columns:1fr auto;gap:8px;align-items:start;
+    }
+    .event-item.done{border-left-color:var(--accent3);}
+    .event-item.progress{border-left-color:var(--accent);}
+    .event-item.planned{border-left-color:var(--accent4);}
+    .event-item.key{border-left-color:var(--accent2);}
+    .event-name{font-size:12px;font-weight:600;line-height:1.4;}
+    .event-owner{font-size:10px;color:var(--muted);background:var(--bg);border:1px solid var(--border);padding:1px 7px;border-radius:8px;white-space:nowrap;}
+    .event-desc{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5;}
+
+    /* ── Project Tracker ── */
+    .project-list{display:flex;flex-direction:column;gap:0;}
+    .project-row{
+      border-bottom:1px solid var(--border);
+      padding:18px 0;display:grid;grid-template-columns:200px 1fr 120px;gap:16px;align-items:center;
+    }
+    .project-row:first-child{border-top:1px solid var(--border);}
+    .proj-name{font-size:13px;font-weight:700;}
+    .proj-phase{font-size:10px;color:var(--muted);margin-top:3px;}
+
+    .phase-track{display:flex;gap:4px;}
+    .phase-dot{
+      flex:1;height:8px;border-radius:4px;background:var(--surface2);
+      border:1px solid var(--border);position:relative;overflow:hidden;
+    }
+    .phase-dot.done{background:var(--accent3);border-color:var(--accent3);}
+    .phase-dot.active{background:var(--accent);border-color:var(--accent);}
+    .phase-dot.next{background:var(--accent4);border-color:var(--accent4);opacity:.5;}
+
+    .proj-status{text-align:right;}
+    .proj-status-badge{
+      font-size:10px;padding:3px 10px;border-radius:10px;font-weight:700;
+    }
+    .psb-active{background:rgba(59,130,246,.15);color:var(--accent);}
+    .psb-done{background:rgba(16,185,129,.15);color:var(--accent3);}
+    .psb-plan{background:rgba(245,158,11,.15);color:var(--accent4);}
+    .psb-key{background:rgba(139,92,246,.15);color:var(--accent2);}
+
+    /* ── Progress bar ── */
+    .prog-list{display:flex;flex-direction:column;gap:13px;}
+    .prog-header{display:flex;justify-content:space-between;margin-bottom:5px;}
+    .prog-name{font-size:12px;font-weight:600;}
+    .prog-pct{font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;}
+    .prog-bar{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;}
+    .prog-fill{height:100%;border-radius:3px;width:0;transition:width 1.2s cubic-bezier(.4,0,.2,1);}
+
+    /* ── Issue ── */
+    .issue-item{
+      background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);
+      border-radius:10px;padding:13px 16px;margin-bottom:9px;
+    }
+    .issue-item:last-child{margin-bottom:0;}
+    .issue-title{font-size:12px;font-weight:700;margin-bottom:5px;}
+    .issue-desc{font-size:11px;color:var(--muted);line-height:1.6;}
+    .issue-action{font-size:10px;color:var(--accent4);margin-top:5px;font-weight:600;}
+
+    /* ── Member weekly grid ── */
+    .member-week-grid{
+      display:grid;grid-template-columns:100px repeat(7,1fr);
+      gap:4px;font-size:10px;
+    }
+    .mwg-header{
+      background:var(--surface2);border:1px solid var(--border);
+      border-radius:6px;padding:5px 8px;font-weight:700;font-family:'Space Mono',monospace;
+      color:var(--muted);text-align:center;
+    }
+    .mwg-name{
+      background:var(--surface2);border:1px solid var(--border);
+      border-radius:6px;padding:8px;font-weight:700;display:flex;align-items:center;
+    }
+    .mwg-cell{
+      border-radius:6px;padding:6px 4px;text-align:center;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    }
+    .mwg-cell.active{background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);}
+    .mwg-cell.heavy{background:rgba(59,130,246,.3);border:1px solid rgba(59,130,246,.5);}
+    .mwg-cell.light{background:var(--surface2);border:1px solid var(--border);opacity:.6;}
+    .mwg-count{font-size:14px;font-weight:900;font-family:'Space Mono',monospace;color:var(--accent);}
+    .mwg-cell.heavy .mwg-count{color:var(--accent2);}
+    .mwg-cell.light .mwg-count{color:var(--muted);}
+
+    /* Tags */
+    .tag{font-size:9px;padding:2px 6px;border-radius:7px;font-weight:600;}
+    .tag-done{background:rgba(16,185,129,.15);color:var(--accent3);}
+    .tag-plan{background:rgba(245,158,11,.15);color:var(--accent4);}
+    .tag-key{background:rgba(139,92,246,.15);color:var(--accent2);}
+
+    /* Budget */
+    .budget-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+    .budget-item{background:var(--surface2);border-radius:10px;padding:14px;}
+    .budget-label{font-size:10px;color:var(--muted);margin-bottom:6px;}
+    .budget-val{font-size:15px;font-weight:700;font-family:'Space Mono',monospace;color:var(--accent3);}
+    .budget-sub{font-size:10px;color:var(--muted);margin-top:4px;line-height:1.4;}
+
+    /* Insight boxes */
+    .insight-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px;}
+    .insight-box{
+      background:var(--surface);border:1px solid var(--border);border-radius:13px;
+      padding:18px;border-top:3px solid var(--border);
+    }
+    .insight-box.blue{border-top-color:var(--accent);}
+    .insight-box.green{border-top-color:var(--accent3);}
+    .insight-box.purple{border-top-color:var(--accent2);}
+    .insight-box.amber{border-top-color:var(--accent4);}
+    .insight-box.red{border-top-color:var(--accent5);}
+    .insight-box.cyan{border-top-color:var(--accent6);}
+    .insight-icon{font-size:22px;margin-bottom:9px;}
+    .insight-title{font-size:12px;font-weight:700;margin-bottom:7px;}
+    .insight-body{font-size:11px;color:var(--muted);line-height:1.6;}
+    .insight-body strong{color:var(--text);}
+
+    @media(max-width:960px){
+      header{padding:16px 18px;flex-wrap:wrap;gap:10px;}
+      main{padding:18px 18px 40px;}
+      .kpi-row{grid-template-columns:repeat(2,1fr);}
+      .grid2,.grid3{grid-template-columns:1fr;}
+      .tab-nav{display:none;}
+      .budget-grid{grid-template-columns:1fr;}
+      .insight-grid{grid-template-columns:1fr;}
+      .week-block{grid-template-columns:1fr;}
+      .member-week-grid{grid-template-columns:repeat(4,1fr);}
+      .project-row{grid-template-columns:1fr;}
+    }
+
+    /* ── Domain Map ── */
+    .domain-map { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:22px; }
+
+    /* 모바일: 도메인 맵 1열 */
+    @media(max-width:768px){
+      .domain-map { grid-template-columns: 1fr 1fr; gap:10px; }
+      .domain-card { padding:14px 12px; }
+      .domain-icon { font-size:22px; margin-bottom:8px; }
+      .domain-name { font-size:11px; margin-bottom:8px; }
+      .domain-tasks li { font-size:10px; }
+    }
+    .domain-card {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:14px; padding:18px 16px; text-align:center;
+      transition:transform .2s, box-shadow .2s;
+    }
+    .domain-card:hover { transform:translateY(-3px); box-shadow:0 8px 24px var(--shadow); }
+    .domain-icon { font-size:26px; margin-bottom:10px; }
+    .domain-name { font-size:12px; font-weight:700; margin-bottom:10px; }
+    .domain-members { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; margin-bottom:10px; }
+    .domain-chip {
+      font-size:10px; font-weight:600; padding:2px 9px; border-radius:10px;
+      border:1px solid var(--border);
+    }
+    .domain-tasks { font-size:10px; color:var(--muted); line-height:1.6; text-align:left; }
+    .domain-tasks li { margin-bottom:2px; list-style:none; padding-left:12px; position:relative; }
+    .domain-tasks li::before { content:'·'; position:absolute; left:0; color:var(--muted); }
+
+    /* ── Connection Map ── */
+    .conn-wrap { position:relative; width:100%; overflow:hidden; }
+    .conn-svg { width:100%; display:block; }
+
+    /* 모바일: 연결도 가로 스크롤 */
+    @media(max-width:768px){
+      .conn-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+      .conn-svg { min-width:600px; }
+    }
+
+    /* ── Achievement Cards ── */
+    .ach-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:14px; }
+
+    /* 모바일: 팀원 성과 카드 1열 */
+    @media(max-width:768px){
+      .ach-grid { grid-template-columns: 1fr; gap:12px; }
+      .ach-card { padding:16px; }
+      .ach-avatar { width:44px; height:44px; font-size:18px; margin-bottom:10px; }
+      .ach-person { font-size:15px; }
+      .ach-role { font-size:11px; margin-bottom:10px; }
+      .ach-item { font-size:12px; padding:9px 11px; }
+      .ach-item strong { font-size:12px; }
+    }
+    .ach-card {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:14px; padding:18px 16px; position:relative; overflow:hidden;
+    }
+    .ach-card::before {
+      content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:14px 14px 0 0;
+    }
+    .ach-avatar {
+      width:44px; height:44px; border-radius:50%; margin-bottom:12px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:18px; font-weight:900; color:#fff;
+    }
+    .ach-person { font-size:13px; font-weight:700; margin-bottom:3px; }
+    .ach-role { font-size:10px; color:var(--muted); margin-bottom:12px; font-family:'Space Mono',monospace; }
+    .ach-list { display:flex; flex-direction:column; gap:7px; }
+    .ach-item {
+      background:var(--surface2); border-radius:8px; padding:8px 10px;
+      font-size:11px; color:var(--muted); line-height:1.5;
+      border-left:2px solid var(--border);
+    }
+    .ach-item strong { color:var(--text); display:block; font-size:11px; margin-bottom:2px; }
+
+
+    
+    
+    
+    /* ── Executive View ── */
+    .exec-hero {
+      background: linear-gradient(135deg, rgba(59,130,246,.1), rgba(139,92,246,.1));
+      border: 1px solid rgba(59,130,246,.2);
+      border-radius: 18px; padding: 32px 36px; margin-bottom: 24px;
+      position: relative; overflow: hidden;
+    }
+    .exec-hero::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3), var(--accent4));
+    }
+    .exec-hero-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 2.5px;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 10px;
+    }
+    .exec-hero-title {
+      font-size: 22px; font-weight: 900; margin-bottom: 6px; line-height: 1.3;
+    }
+    .exec-hero-sub {
+      font-size: 13px; color: var(--muted); line-height: 1.7;
+    }
+    .exec-hero-sub strong { color: var(--text); }
+
+    /* Phase cards */
+    .phase-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+    .phase-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 22px; position: relative; overflow: hidden;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .phase-card:hover { transform: translateY(-3px); box-shadow: 0 10px 32px var(--shadow); }
+    .phase-card-accent {
+      position: absolute; top: 0; left: 0; bottom: 0; width: 4px; border-radius: 16px 0 0 16px;
+    }
+    .phase-card-icon { font-size: 26px; margin-bottom: 12px; }
+    .phase-card-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .phase-card-desc { font-size: 11px; color: var(--muted); margin-bottom: 14px; line-height: 1.6; }
+    .phase-card-why {
+      font-size: 11px; color: var(--summary-text);
+      background: var(--surface2); border-radius: 8px; padding: 9px 12px;
+      border-left: 2px solid var(--border); line-height: 1.6; margin-bottom: 14px;
+    }
+    .phase-card-why strong { color: var(--text); }
+
+    /* Phase steps */
+    .phase-steps { display: flex; gap: 4px; align-items: center; }
+    .phase-step {
+      flex: 1; height: 7px; border-radius: 4px; background: var(--surface2);
+      border: 1px solid var(--border); position: relative; overflow: hidden;
+      transition: background .3s;
+    }
+    .phase-step.done { border-color: transparent; }
+    .phase-step-fill { height: 100%; border-radius: 4px; width: 0; transition: width 1s cubic-bezier(.4,0,.2,1); }
+    .phase-step-label {
+      display: flex; justify-content: space-between;
+      margin-top: 6px; font-size: 9px; color: var(--muted);
+      font-family: 'Space Mono', monospace;
+    }
+    .phase-status {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 10px; font-weight: 700; padding: 3px 10px;
+      border-radius: 10px; margin-top: 10px;
+    }
+    .ps-active { background: rgba(59,130,246,.15); color: var(--accent); }
+    .ps-done   { background: rgba(16,185,129,.15); color: var(--accent3); }
+    .ps-plan   { background: rgba(245,158,11,.15); color: var(--accent4); }
+
+    /* Highlight timeline */
+    .hl-list { display: flex; flex-direction: column; gap: 0; }
+    .hl-item { display: flex; gap: 0; }
+    .hl-spine { display: flex; flex-direction: column; align-items: center; width: 48px; flex-shrink: 0; }
+    .hl-dot {
+      width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 8px; color: #fff; font-weight: 900; margin-top: 16px;
+    }
+    .hl-line { width: 2px; flex: 1; min-height: 16px; margin-top: 4px; }
+    .hl-body {
+      flex: 1; padding: 12px 0 20px 0;
+    }
+    .hl-week { font-size: 9px; color: var(--muted); font-family: 'Space Mono', monospace; margin-bottom: 3px; letter-spacing: .5px; }
+    .hl-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; line-height: 1.4; }
+    .hl-body-text { font-size: 12px; color: var(--muted); line-height: 1.6; }
+    .hl-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
+    .hl-tag {
+      font-size: 9px; padding: 2px 8px; border-radius: 8px;
+      font-weight: 700; letter-spacing: .3px;
+    }
+
+    /* Donut chart */
+    .donut-wrap { display: flex; align-items: center; gap: 28px; }
+    .donut-svg { flex-shrink: 0; }
+    .donut-legend { display: flex; flex-direction: column; gap: 10px; }
+    .donut-leg-item { display: flex; align-items: center; gap: 10px; }
+    .donut-leg-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .donut-leg-name { font-size: 12px; font-weight: 600; }
+    .donut-leg-pct { font-size: 11px; color: var(--muted); font-family: 'Space Mono', monospace; margin-left: auto; padding-left: 12px; }
+
+    @media(max-width:900px){
+      .phase-grid { grid-template-columns: 1fr; }
+      .donut-wrap { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-area">
+    <div class="logo-badge">🤖</div>
+    <div class="logo-text">
+      <h1>AI전략팀 업무 흐름 대시보드</h1>
+      <span>AI STRATEGY TEAM · 3월 5주차 ~ 5월 4주차</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="week-badge" id="week-badge">3월 5주 → 5월 4주</div>
+    <!-- 햄버거 버튼: 모바일에서만 표시 -->
+    <button class="hamburger-btn" id="hamburger-btn" onclick="toggleHamburger()" title="메뉴">☰</button>
+    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="테마 변경">☀️</button>
+  </div>
+</header>
+
+<!-- 햄버거 드롭다운 메뉴: 모바일에서만 표시 -->
+<div class="hamburger-menu" id="hamburger-menu">
+  <button class="hmenu-item active" id="hmenu-executive" onclick="selectHamburgerTab('executive', this)">⭐ 성과 요약</button>
+  <button class="hmenu-item" id="hmenu-overview"   onclick="selectHamburgerTab('overview', this)">📊 전체 현황</button>
+  <button class="hmenu-item" id="hmenu-timeline"   onclick="selectHamburgerTab('timeline', this)">📅 주간 흐름</button>
+  <button class="hmenu-item" id="hmenu-projects"   onclick="selectHamburgerTab('projects', this)">🚀 프로젝트</button>
+  <button class="hmenu-item" id="hmenu-members"    onclick="selectHamburgerTab('members', this)">👥 팀원별</button>
+  <button class="hmenu-item" id="hmenu-insights"   onclick="selectHamburgerTab('insights', this)">💡 인사이트</button>
+</div>
+
+<!-- 독립 탭 바 — 항상 전체 너비, sticky -->
+<div class="tab-bar">
+  <nav class="tab-nav">
+    <button class="tab-btn active" onclick="showTab('executive', this)">⭐ 성과 요약</button>
+    <button class="tab-btn" onclick="showTab('overview', this)">📊 전체 현황</button>
+    <button class="tab-btn" onclick="showTab('timeline', this)">📅 주간 흐름</button>
+    <button class="tab-btn" onclick="showTab('projects', this)">🚀 프로젝트</button>
+    <button class="tab-btn" onclick="showTab('members', this)">👥 팀원별</button>
+    <button class="tab-btn" onclick="showTab('insights', this)">💡 인사이트</button>
+  </nav>
+</div>
+
+<main>
+
+<!-- ══════════════════════════════════════════
+     TAB 0: Executive View — 성과 요약
+══════════════════════════════════════════ -->
+<div class="tab-panel active" id="tab-executive">
+
+  <!-- Hero -->
+  <div class="exec-hero">
+    <div class="exec-hero-label">⭐ Executive Summary</div>
+    <div class="exec-hero-title">AI전략팀 — 3월 출범 이후 7주간의 주요 성과</div>
+    <div class="exec-hero-sub">
+      <strong>5개 핵심 프로젝트</strong>를 동시 추진하며 팀 기반 구축부터 실질 운영 단계까지 빠르게 전환했습니다.<br>
+      AI전략위원회 첫 개최 · 부트캠프 사업 설명회 · AI어드바이저 UI 확정 등 가시적 성과를 만들어가고 있습니다.
+    </div>
+  </div>
+
+  <!-- ① 프로젝트 단계 현황 -->
+  <div class="section-title">① 프로젝트별 현재 단계</div>
+  <div class="phase-grid">
+
+    <!-- 부트캠프 -->
+    <div class="phase-card">
+      <div class="phase-card-accent" style="background:var(--accent3);"></div>
+      <div class="phase-card-icon">🚀</div>
+      <div class="phase-card-name">휴먼AI부트캠프 사업 운영</div>
+      <div class="phase-card-desc">첨단산업 인재양성 국고 지원 사업. 사업비 14.25억원 규모.</div>
+      <div class="phase-card-why">
+        <strong>이 사업이 만드는 변화</strong><br>
+        AI 분야 실무 역량을 갖춘 인재를 대학 교육과정 안에서 직접 양성. 기업 수요 기반 교과목 개발로 산학 연계 강화.
+      </div>
+      <div class="phase-steps" id="ps-bootcamp"></div>
+      <div class="phase-step-label"><span>기반 구축</span><span>협약·예산</span><span>장비·공간</span><span>프로그램 운영</span><span>성과 창출</span></div>
+      <span class="phase-status ps-active">● 진행 중 — 4단계</span>
+    </div>
+
+    <!-- AI어드바이저 -->
+    <div class="phase-card">
+      <div class="phase-card-accent" style="background:var(--accent);"></div>
+      <div class="phase-card-icon">🤖</div>
+      <div class="phase-card-name">AI어드바이저 시스템 구축</div>
+      <div class="phase-card-desc">학생성공지원을 위한 AI 기반 어드바이저 시스템 구축.</div>
+      <div class="phase-card-why">
+        <strong>이 시스템이 만드는 변화</strong><br>
+        학생 개인 맞춤형 학습·진로 상담을 AI로 지원. 교무·취업·혁신 등 복수 부서 데이터를 통합 활용.
+      </div>
+      <div class="phase-steps" id="ps-advisor"></div>
+      <div class="phase-step-label"><span>요구사항</span><span>컨설팅</span><span>UI 확정</span><span>현장 실사</span><span>구축</span></div>
+      <span class="phase-status ps-active">● 진행 중 — 4단계</span>
+    </div>
+
+    <!-- AI리터러시 -->
+    <div class="phase-card">
+      <div class="phase-card-accent" style="background:var(--accent2);"></div>
+      <div class="phase-card-icon">📚</div>
+      <div class="phase-card-name">AI리터러시 교육 체계 구축</div>
+      <div class="phase-card-desc">재학생 대상 AI 활용 촉진 및 윤리 의식 강화 교육.</div>
+      <div class="phase-card-why">
+        <strong>이 교육이 만드는 변화</strong><br>
+        AI 윤리·철학 + 실무 활용 2트랙으로 운영. 대학혁신사업 예산 활용, 전교생 대상 AI 기초 역량 체계화.
+      </div>
+      <div class="phase-steps" id="ps-literacy"></div>
+      <div class="phase-step-label"><span>계획 수립</span><span>수요 조사</span><span>설계</span><span>개발</span><span>운영</span></div>
+      <span class="phase-status ps-active">● 진행 중 — 3단계</span>
+    </div>
+
+    <!-- AI전략위원회 -->
+    <div class="phase-card">
+      <div class="phase-card-accent" style="background:var(--accent4);"></div>
+      <div class="phase-card-icon">🏛</div>
+      <div class="phase-card-name">AI전략위원회 운영</div>
+      <div class="phase-card-desc">법률·기술 전문가 포함 교내외 11인 위원회.</div>
+      <div class="phase-card-why">
+        <strong>이 위원회가 만드는 변화</strong><br>
+        대학 AI 정책 방향을 전문가 집단이 함께 결정. AI 가이드라인 제정으로 교내 AI 사용 기준 마련.
+      </div>
+      <div class="phase-steps" id="ps-committee"></div>
+      <div class="phase-step-label"><span>위원 구성</span><span>1차 회의</span><span>가이드라인</span><span>정례 운영</span><span>제도화</span></div>
+      <span class="phase-status ps-active">● 진행 중 — 2단계</span>
+    </div>
+
+    <!-- AI토론대회 -->
+    <div class="phase-card">
+      <div class="phase-card-accent" style="background:var(--accent6);"></div>
+      <div class="phase-card-icon">💬</div>
+      <div class="phase-card-name">AI토론대회 기획</div>
+      <div class="phase-card-desc">학생 대상 AI 주제 토론대회 기획 및 운영.</div>
+      <div class="phase-card-why">
+        <strong>이 행사가 만드는 변화</strong><br>
+        AI에 대한 학생들의 비판적 사고 역량 함양. 대학혁신사업과 연계하여 교육 성과 가시화.
+      </div>
+      <div class="phase-steps" id="ps-debate"></div>
+      <div class="phase-step-label"><span>기획</span><span>RFP 작성</span><span>업체 선정</span><span>운영</span><span>완료</span></div>
+      <span class="phase-status ps-active">● 진행 중 — 2단계</span>
+    </div>
+
+    <!-- AI도구·자원 -->
+    <div class="phase-card">
+      <div class="phase-card-accent" style="background:var(--accent5);"></div>
+      <div class="phase-card-icon">💻</div>
+      <div class="phase-card-name">AI 도구·컴퓨팅 자원 지원</div>
+      <div class="phase-card-desc">부서·교수·학생 대상 AI 도구 및 GPU 인프라 지원.</div>
+      <div class="phase-card-why">
+        <strong>이 지원이 만드는 변화</strong><br>
+        전교적 AI 활용 기반 조성. 교원·직원이 업무에 AI를 실질적으로 쓸 수 있는 환경 구축.
+      </div>
+      <div class="phase-steps" id="ps-tools"></div>
+      <div class="phase-step-label"><span>현황 조사</span><span>도구 도입</span><span>자원 확보</span><span>확산</span><span>정착</span></div>
+      <span class="phase-status ps-active">● 진행 중 — 2단계</span>
+    </div>
+
+  </div>
+
+  <!-- ② 7주 성과 하이라이트 + ③ 업무 구성 -->
+  <div class="grid2">
+
+    <!-- ② 성과 하이라이트 타임라인 -->
+    <div class="card">
+      <div class="card-title"><div class="dot" style="background:var(--accent4)"></div>② 7주 핵심 성과 하이라이트</div>
+      <div class="hl-list">
+
+        <div class="hl-item">
+          <div class="hl-spine">
+            <div class="hl-dot" style="background:var(--accent3);">✓</div>
+            <div class="hl-line" style="background:var(--border);"></div>
+          </div>
+          <div class="hl-body">
+            <div class="hl-week">3월 5주차</div>
+            <div class="hl-title">AI전략팀 공식 출범</div>
+            <div class="hl-body-text">AI전략위원회 11명 위촉 완료. 팀 공간·인력·시스템 기반 구축 착수.</div>
+            <div class="hl-tags">
+              <span class="hl-tag" style="background:rgba(16,185,129,.15);color:var(--accent3);">팀 출범</span>
+              <span class="hl-tag" style="background:rgba(59,130,246,.15);color:var(--accent);">위원회 구성</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hl-item">
+          <div class="hl-spine">
+            <div class="hl-dot" style="background:var(--accent3);">✓</div>
+            <div class="hl-line" style="background:var(--border);"></div>
+          </div>
+          <div class="hl-body">
+            <div class="hl-week">4월 1주차</div>
+            <div class="hl-title">부트캠프 첫 참여교원 간담회 개최</div>
+            <div class="hl-body-text">참여교원 7명 + 처장·교수진 참석. 교과목 개발·하계 교육 방향 첫 협의.</div>
+            <div class="hl-tags">
+              <span class="hl-tag" style="background:rgba(16,185,129,.15);color:var(--accent3);">부트캠프</span>
+              <span class="hl-tag" style="background:rgba(139,92,246,.15);color:var(--accent2);">산학협력</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hl-item">
+          <div class="hl-spine">
+            <div class="hl-dot" style="background:var(--accent3);">✓</div>
+            <div class="hl-line" style="background:var(--border);"></div>
+          </div>
+          <div class="hl-body">
+            <div class="hl-week">4월 4주차</div>
+            <div class="hl-title">분야별 위원회 26명 위촉 완료</div>
+            <div class="hl-body-text">교내외 전문가 26명으로 구성. 기업 수요 기반 교과목 개발의 전문성 확보.</div>
+            <div class="hl-tags">
+              <span class="hl-tag" style="background:rgba(16,185,129,.15);color:var(--accent3);">부트캠프</span>
+              <span class="hl-tag" style="background:rgba(245,158,11,.15);color:var(--accent4);">거버넌스</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hl-item">
+          <div class="hl-spine">
+            <div class="hl-dot" style="background:var(--accent3);">✓</div>
+            <div class="hl-line" style="background:var(--border);"></div>
+          </div>
+          <div class="hl-body">
+            <div class="hl-week">5월 3주차</div>
+            <div class="hl-title">사업운영위원회 구성 — 총장 결재 완료</div>
+            <div class="hl-body-text">교과목 개발(5건·1천만원)·공동운영(100H·2천만원) 공고 배포. 사업 본격 운영 체계 완성.</div>
+            <div class="hl-tags">
+              <span class="hl-tag" style="background:rgba(16,185,129,.15);color:var(--accent3);">부트캠프</span>
+              <span class="hl-tag" style="background:rgba(6,182,212,.15);color:var(--accent6);">예산 집행</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hl-item">
+          <div class="hl-spine">
+            <div class="hl-dot" style="background:var(--accent3);">✓</div>
+            <div class="hl-line" style="background:var(--border);"></div>
+          </div>
+          <div class="hl-body">
+            <div class="hl-week">5월 4주차</div>
+            <div class="hl-title">제1회 AI전략위원회 개최</div>
+            <div class="hl-body-text">11명 중 8명 참석. AI 가이드라인 제정 논의 시작. 대학 AI 정책 거버넌스 공식화.</div>
+            <div class="hl-tags">
+              <span class="hl-tag" style="background:rgba(245,158,11,.15);color:var(--accent4);">위원회</span>
+              <span class="hl-tag" style="background:rgba(139,92,246,.15);color:var(--accent2);">AI 정책</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hl-item">
+          <div class="hl-spine">
+            <div class="hl-dot" style="background:var(--accent3);">✓</div>
+            <div class="hl-line" style="background:transparent;"></div>
+          </div>
+          <div class="hl-body">
+            <div class="hl-week">5월 4주차</div>
+            <div class="hl-title">AI어드바이저 UI 확정 · 부트캠프 설명회 34명 참석</div>
+            <div class="hl-body-text">UI 디자인 2회 미팅 후 확정. 하계 학생 설명회 34명 참석으로 모집 공식 시작.</div>
+            <div class="hl-tags">
+              <span class="hl-tag" style="background:rgba(59,130,246,.15);color:var(--accent);">AI어드바이저</span>
+              <span class="hl-tag" style="background:rgba(16,185,129,.15);color:var(--accent3);">부트캠프</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ③ 업무 구성 도넛 차트 -->
+    <div class="card">
+      <div class="card-title"><div class="dot" style="background:var(--accent2)"></div>③ 7주간 업무 카테고리 구성</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:18px;line-height:1.6;">
+        단순 행정 지원을 넘어 <strong style="color:var(--text)">전략 기획과 사업 운영</strong>이 팀 업무의 핵심을 이루고 있습니다.
+      </div>
+      <div class="donut-wrap">
+        <svg class="donut-svg" width="240" height="240" viewBox="0 0 240 240">
+          <!-- 도넛 차트: 전략기획 28%, 사업운영 32%, 행정예산 25%, 홍보콘텐츠 15% -->
+          <!-- 총 둘레: 2πr = 2*3.14159*54 ≈ 339.3 -->
+          <!-- 각 섹션 stroke-dasharray = (pct/100)*339.3, offset은 누적 -->
+          <!-- 전략기획 28% = 95 / offset 0 -->
+          <circle cx="120" cy="120" r="88" fill="none" stroke="var(--surface2)" stroke-width="34"/>
+          <circle cx="120" cy="120" r="88" fill="none" stroke="#3b82f6" stroke-width="34"
+            stroke-dasharray="155 398" stroke-dashoffset="138" stroke-linecap="butt"
+            style="transition:stroke-dasharray 1.2s ease"/>
+          <!-- 사업운영 32% = 109 / offset -95 → dashoffset = 85-95 = -10 → 85-95=-10 -->
+          <circle cx="120" cy="120" r="88" fill="none" stroke="#10b981" stroke-width="34"
+            stroke-dasharray="177 376" stroke-dashoffset="-17" stroke-linecap="butt"/>
+          <!-- 행정예산 25% = 85 / dashoffset = -10-109 = -119 -->
+          <circle cx="120" cy="120" r="88" fill="none" stroke="#8b5cf6" stroke-width="34"
+            stroke-dasharray="138 415" stroke-dashoffset="-194" stroke-linecap="butt"/>
+          <!-- 홍보콘텐츠 15% = 51 / dashoffset = -119-85 = -204 -->
+          <circle cx="120" cy="120" r="88" fill="none" stroke="#f59e0b" stroke-width="34"
+            stroke-dasharray="83 470" stroke-dashoffset="-332" stroke-linecap="butt"/>
+          <!-- 중앙 텍스트 -->
+          <text x="120" y="113" text-anchor="middle" font-size="13" fill="var(--muted)" font-family="Space Mono,monospace">7주간</text>
+          <text x="120" y="132" text-anchor="middle" font-size="13" fill="var(--muted)" font-family="Space Mono,monospace">업무 구성</text>
+        </svg>
+        <div class="donut-legend">
+          <div class="donut-leg-item">
+            <div class="donut-leg-dot" style="background:#10b981;"></div>
+            <div>
+              <div class="donut-leg-name">사업 운영</div>
+              <div style="font-size:10px;color:var(--muted);">부트캠프·AI어드바이저·교과목</div>
+            </div>
+            <div class="donut-leg-pct">32%</div>
+          </div>
+          <div class="donut-leg-item">
+            <div class="donut-leg-dot" style="background:#3b82f6;"></div>
+            <div>
+              <div class="donut-leg-name">전략 기획</div>
+              <div style="font-size:10px;color:var(--muted);">위원회·가이드라인·로드맵</div>
+            </div>
+            <div class="donut-leg-pct">28%</div>
+          </div>
+          <div class="donut-leg-item">
+            <div class="donut-leg-dot" style="background:#8b5cf6;"></div>
+            <div>
+              <div class="donut-leg-name">행정 · 예산</div>
+              <div style="font-size:10px;color:var(--muted);">EDWARD·구매·인건비</div>
+            </div>
+            <div class="donut-leg-pct">25%</div>
+          </div>
+          <div class="donut-leg-item">
+            <div class="donut-leg-dot" style="background:#f59e0b;"></div>
+            <div>
+              <div class="donut-leg-name">홍보 · 콘텐츠</div>
+              <div style="font-size:10px;color:var(--muted);">리플렛·설명회·STORY+</div>
+            </div>
+            <div class="donut-leg-pct">15%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 한 줄 인사이트 -->
+      <div style="margin-top:22px;display:flex;flex-direction:column;gap:8px;">
+        <div style="background:var(--surface2);border-radius:9px;padding:11px 14px;border-left:3px solid var(--accent3);font-size:11px;color:var(--summary-text);line-height:1.6;">
+          <strong style="color:var(--text);">사업 운영 + 전략 기획 = 60%</strong><br>
+          AI전략팀은 단순 지원 조직이 아닌, 대학의 AI 전환을 직접 기획하고 실행하는 팀입니다.
+        </div>
+        <div style="background:var(--surface2);border-radius:9px;padding:11px 14px;border-left:3px solid var(--accent4);font-size:11px;color:var(--summary-text);line-height:1.6;">
+          <strong style="color:var(--text);">행정·예산 25%</strong><br>
+          국고 사업 특성상 필수적인 회계·구매 절차가 차지하는 비중으로, 사업 운영의 기반입니다.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /tab-executive -->
+
+<!-- ══════════════════════════════════════════
+     TAB 1: 전체 현황
+══════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-overview">
+
+  <div class="ai-summary">
+    <div class="ai-summary-label">🤖 7주 종합 분석</div>
+    <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:9px;">
+      <li style="font-size:13px;line-height:1.8;color:var(--summary-text);padding-left:18px;position:relative;">
+        <span style="position:absolute;left:0;color:var(--accent);font-weight:900;">›</span>
+        <strong>3월 5주차 팀 출범</strong>을 시작으로 7주간 3대 핵심 축인 <strong>휴먼AI부트캠프 사업 운영</strong>·<strong>AI어드바이저 시스템 구축</strong>·<strong>AI리터러시 교육 설계</strong>를 동시에 추진해왔습니다.
+      </li>
+      <li style="font-size:13px;line-height:1.8;color:var(--summary-text);padding-left:18px;position:relative;">
+        <span style="position:absolute;left:0;color:var(--accent);font-weight:900;">›</span>
+        초기(3~4월 1주)에는 <strong>팀 세팅·EDWARD 과제 개설·인력 채용</strong> 등 기반 구축에 집중하였고, 4월 2~4주에는 <strong>협약 변경·예산 집행·장비 구매 절차</strong>를 본격화했습니다.
+      </li>
+      <li style="font-size:13px;line-height:1.8;color:var(--summary-text);padding-left:18px;position:relative;">
+        <span style="position:absolute;left:0;color:var(--accent3);font-weight:900;">›</span>
+        5월 들어서는 <strong>AI전략위원회 첫 개최</strong>·<strong>부트캠프 설명회 34명 참석</strong>·<strong>AI어드바이저 UI 확정</strong> 등 가시적 성과가 나타나고 있습니다.
+      </li>
+      <li style="font-size:13px;line-height:1.8;color:var(--summary-text);padding-left:18px;position:relative;">
+        <span style="position:absolute;left:0;color:var(--accent4);font-weight:900;">›</span>
+        현재 사업비 집행률 <strong>7.7%</strong>(1.09억/14.25억)로, <strong>하반기 집행 가속화</strong>가 핵심 과제입니다.
+      </li>
+    </ul>
+  </div>
+
+
+  <div class="section-title">7주 누적 핵심 지표</div>
+  <div class="kpi-row">
+    <div class="kpi-card blue">
+      <div class="kpi-label">주간보고 기간</div>
+      <div class="kpi-val">7W</div>
+      <div class="kpi-sub">3월 5주차 ~ 5월 4주차</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">진행 프로젝트</div>
+      <div class="kpi-val">5개</div>
+      <div class="kpi-sub">부트캠프·AI어드바이저·리터러시·위원회·AI활용</div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-label">팀원</div>
+      <div class="kpi-val">5명</div>
+      <div class="kpi-sub">민승기·박지은·강승연·권예은·정성희</div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-label">사업비 집행률</div>
+      <div class="kpi-val">7.7%</div>
+      <div class="kpi-sub">1.09억 / 14.25억 (6.1 기준)</div>
+    </div>
+  </div>
+
+  <div class="section-title">주요 예산 집행 현황</div>
+  <div class="budget-grid" style="margin-bottom:22px;">
+    <div class="budget-item">
+      <div class="budget-label">부트캠프 총 사업비</div>
+      <div class="budget-val">14.25억원</div>
+      <div class="budget-sub">집행 1.09억 (7.7%) / 잔액 약 13.16억</div>
+    </div>
+    <div class="budget-item">
+      <div class="budget-label">교육용 연구장비 구매 계획</div>
+      <div class="budget-val">149,822,000원</div>
+      <div class="budget-sub">로봇AI·NAS·비전처리 실습장비 등</div>
+    </div>
+    <div class="budget-item">
+      <div class="budget-label">간접비 이관</div>
+      <div class="budget-val">71,250,000원</div>
+      <div class="budget-sub">국고의 5% / RCMS 신청 완료</div>
+    </div>
+    <div class="budget-item">
+      <div class="budget-label">사무 가구·PC 설치</div>
+      <div class="budget-val">22,267,000원</div>
+      <div class="budget-sub">가구 8,143,000 + PC·모니터 14,124,000</div>
+    </div>
+    <div class="budget-item">
+      <div class="budget-label">교과목 개발·공동운영 지원</div>
+      <div class="budget-val">30,000,000원</div>
+      <div class="budget-sub">교과목 개발 5건(1천만) + 공동운영 100시간(2천만)</div>
+    </div>
+    <div class="budget-item">
+      <div class="budget-label">AI 도구 구독 (부서원 4인)</div>
+      <div class="budget-val">결제 완료</div>
+      <div class="budget-sub">Claude Pro 2인 + ChatGPT Business 2인</div>
+    </div>
+  </div>
+
+  <div class="section-title">진행 중인 이슈</div>
+  <div class="grid2">
+    <div>
+      <div class="issue-item">
+        <div class="issue-title">⚠️ 사업비 집행률 저조 (7.7%)</div>
+        <div class="issue-desc">6.1 기준 1.09억 집행. 연말 불용 방지를 위해 하반기 집행 계획 조기 수립이 필요합니다.</div>
+        <div class="issue-action">→ 직접비 내 회의비·재료비 지원 계획 수립 (권예은)</div>
+      </div>
+      <div class="issue-item">
+        <div class="issue-title">⚠️ AI어드바이저 서버 스펙 확인 필요</div>
+        <div class="issue-desc">리눅스 버전 및 L4 스위치 등 최초 요구내역 외 항목 계약 변경 필요 여부 검토.</div>
+        <div class="issue-action">→ 정만주·장기선 팀장 확인 / 6.8 현장 실사 시 처리</div>
+      </div>
+      <div class="issue-item">
+        <div class="issue-title">⚠️ 하계 몰입형 교육 학점 인정 기준 미확정</div>
+        <div class="issue-desc">15시간당 1학점 방안 검토 중이나 교무교직팀 확인 필요.</div>
+        <div class="issue-action">→ 교무교직팀 공식 확인 요청</div>
+      </div>
+    </div>
+    <div>
+      <div class="issue-item">
+        <div class="issue-title">📋 모두의연구소 예산 괴리 문제</div>
+        <div class="issue-desc">요청금액 2.8억 vs 국고 10% 이내 집행 가능금액 1.425억. 시간당 단가 협의 필요(9,000원×45H×100명=4,050만원).</div>
+        <div class="issue-action">→ 이주화 교수가 모두연 측에 입장 전달 완료</div>
+      </div>
+      <div class="issue-item">
+        <div class="issue-title">📋 원인행위품의서 결재 대기 다수</div>
+        <div class="issue-desc">주차권·사무가구·기계기구 구매 건 결재 진행 중. 결재 완료 후 즉시 구매 신청.</div>
+        <div class="issue-action">→ 권예은 지속 모니터링</div>
+      </div>
+      <div class="issue-item">
+        <div class="issue-title">📋 산학협력단 공인인증서 매년 갱신 필요</div>
+        <div class="issue-desc">1년 단위 갱신으로 매년 4월 내 EDWARD 재신청 필요 (관리자: 강승연).</div>
+        <div class="issue-action">→ 내년 4월 재신청 일정 캘린더 등록 필요</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /tab-overview -->
+
+
+<!-- ══════════════════════════════════════════
+     TAB 2: 주간 흐름 타임라인
+══════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-timeline">
+
+  <div class="ai-summary">
+    <div class="ai-summary-label">📅 주간별 핵심 흐름</div>
+    <p>
+      <strong>3월 5주(출범)</strong> → <strong>4월 1주(기반 구축)</strong> → <strong>4월 2주(협약·예산)</strong> →
+      <strong>4월 3주(구매·채용)</strong> → <strong>4월 4주(심의·가이드라인)</strong> → <strong>5월 3주(본격 운영)</strong> → <strong>5월 4주(성과 창출)</strong>
+      순으로 팀이 빠르게 안정화되었습니다.
+    </p>
+  </div>
+
+  <div class="mega-tl">
+
+    <!-- 3월 5주 -->
+    <div class="week-block">
+      <div class="week-label-col done">
+        <div class="week-chip">3월 5주</div>
+      </div>
+      <div class="week-content">
+        <div class="week-heading">AI전략팀 출범 · 기반 계획 수립 (기준: 4.6 간부회의)</div>
+        <div class="event-list">
+          <div class="event-item key">
+            <div>
+              <div class="event-name">🏆 AI전략위원회 구성 완료 — 법률·기술 전문가 4명 포함 11명 위촉</div>
+            </div>
+            <span class="tag tag-key">핵심</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">휴먼AI부트캠프 사업단 공간 공사 계획 수립 + 사업 운영 인력 1명 채용 진행</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">AI 기반 학생성공지원시스템 컨설팅 — 이해관계자 인터뷰, 중도이탈 데이터 분석</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item planned">
+            <div>
+              <div class="event-name">[계획] AI리터러시 교육 계획 수립 / 부트캠프 사무공간 조성 / 생성형AI 수요조사</div>
+            </div>
+            <span class="tag tag-plan">계획</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4월 1주 -->
+    <div class="week-block">
+      <div class="week-label-col done">
+        <div class="week-chip">4월 1주</div>
+      </div>
+      <div class="week-content">
+        <div class="week-heading">팀 세팅 완료 · 부트캠프 킥오프 · AI어드바이저 컨설팅 시작</div>
+        <div class="event-list">
+          <div class="event-item done">
+            <div>
+              <div class="event-name">AI전략팀 오피스 세팅 완료 — PC 이동(13일)·가구 설치(14일)·복합기(15일)</div>
+              <div class="event-desc">박지은: 전산개발팀 인수인계 완료, 법인카드·에스원 출입 신청 완료</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item key">
+            <div>
+              <div class="event-name">🏆 부트캠프 제1차 참여교원 간담회 — 교과목 개발·하계몰입형 교육 협의</div>
+              <div class="event-desc">4.10(금), 참여교원 7명 + 처장·이주화 교수·민승기·강승연</div>
+            </div>
+            <span class="tag tag-key">핵심</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">AI어드바이저 EST소프트 관계자 미팅 + 부서별 기능 컨설팅</div>
+              <div class="event-desc">4.15(수) 교무교직팀·취업지원팀·교육혁신팀·학생성공센터 4개 부서</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">EDWARD 부트캠프 연구과제 개설 + RCMS 이체권한 등록 + 공인인증서 발급</div>
+              <div class="event-desc">강승연: 사업 플랫폼 참석 워크숍(용산 로카우스, 4.9)</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item planned">
+            <div>
+              <div class="event-name">[계획] 채용 1명 추가 / AI전략위원회 1차 소집 아젠다 결정 / 법인카드 발급</div>
+            </div>
+            <span class="tag tag-plan">계획</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4월 2주 -->
+    <div class="week-block">
+      <div class="week-label-col done">
+        <div class="week-chip">4월 2주</div>
+      </div>
+      <div class="week-content">
+        <div class="week-heading">협약 변경 · 예산 확인 · 부서 AI 현황 조사</div>
+        <div class="event-list">
+          <div class="event-item done">
+            <div>
+              <div class="event-name">부트캠프 협약변경(통보성) — 예산 항목 용도 변경, 기자재 예산 한도(30%) 준수 확인</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">AI 기반 학생성공지원시스템 컨설팅 — 교무교직·취업지원·대학혁신사업팀 요구사항 분석</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">부서별 AI 도입 현황·혁신사례 조사 + AI 정책 로드맵 기초 데이터 수집</div>
+              <div class="event-desc">박지은: AI토론대회 사업계획 수립 및 예산 신청 시작</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">사업비 카드 발급 신청·과제 연결 / 부트캠프 사무 공간 기자재 구매 신청</div>
+              <div class="event-desc">강승연: 부트캠프 업무 리스트·일정표 작성, 사업단용 매뉴얼 제작 시작</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item planned">
+            <div>
+              <div class="event-name">[계획] GPU 등 컴퓨팅 자원 수요·활용 조사 / 3천만원 미만 장비 구매 리스트 확정</div>
+            </div>
+            <span class="tag tag-plan">계획</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4월 3주 -->
+    <div class="week-block">
+      <div class="week-label-col done">
+        <div class="week-chip">4월 3주</div>
+      </div>
+      <div class="week-content">
+        <div class="week-heading">채용 본격화 · 고가장비 구매 심의 · AI토론대회 RFP 착수</div>
+        <div class="event-list">
+          <div class="event-item done">
+            <div>
+              <div class="event-name">부트캠프 신규 인력 채용 업무 — 사업운영 + 회계 2명 예상</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">고가기자재(3천만↑) 구매 서류 검토 — 조현철 교수 장비 중복성 검사</div>
+              <div class="event-desc">강승연: KIAT 간사 확인(예산 변경·주민세·고가기자재 스펙 변경 등)</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">AI정보처 홈페이지 관리자 권한 취득 + 개인정보보호 자료 최신화</div>
+              <div class="event-desc">박지은: AI현황조사 결과 분석, AI토론대회 RFP 초안 작성</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">주민세 납부 지원 협조문 기안 / 연구비 카드 수령·EDWARD·RCMS 등록</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item planned">
+            <div>
+              <div class="event-name">[계획] AI토론대회 업체 미팅·RFP 보완 / 산학프로젝트 운영안 작성</div>
+            </div>
+            <span class="tag tag-plan">계획</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4월 4주 -->
+    <div class="week-block">
+      <div class="week-label-col done">
+        <div class="week-chip">4월 4주</div>
+      </div>
+      <div class="week-content">
+        <div class="week-heading">2차 협약변경 · 위원회 위촉 26명 · AI가이드라인 검토</div>
+        <div class="event-list">
+          <div class="event-item key">
+            <div>
+              <div class="event-name">🏆 제2차 협약 변경 완료 — 지원기관 사업비 관리기준 + 연구지원인력 정보 반영</div>
+            </div>
+            <span class="tag tag-key">핵심</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">분야별 위원회 위촉 완료 — 기업 수요 반영 교과목 개발 목적, 교내외 26명</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">AI전략위원회 대상 대학 AI 활용 가이드라인 사전 검토 및 의견 제출(5.6까지)</div>
+              <div class="event-desc">5.4 교무회의 처장 발표 "AI정보처 비전과 연구·교육·행정 확산 전략" 준비</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">AI현황조사 결과보고서 작성 + AI토론대회 RFP 구체화 (이스트소프트 견적 요청)</div>
+              <div class="event-desc">강승연: 예산 변경에 따른 EDWARD 과제실행예산·계정과목별 예산 변경 신청</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item planned">
+            <div>
+              <div class="event-name">[계획] 5.8까지 고가장비 심의위원회 안건 제출(2건) / 수정사업계획서 작성</div>
+            </div>
+            <span class="tag tag-plan">계획</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5월 3주 -->
+    <div class="week-block">
+      <div class="week-label-col done">
+        <div class="week-chip">5월 3주</div>
+      </div>
+      <div class="week-content">
+        <div class="week-heading">사업 운영 본격화 · 모두의연구소 협의 · AI어드바이저 데이터 요청</div>
+        <div class="event-list">
+          <div class="event-item key">
+            <div>
+              <div class="event-name">🏆 사업운영위원회 구성 완료 (총장 결재) + 교과목 개발·공동운영 건 품의 완료</div>
+            </div>
+            <span class="tag tag-key">핵심</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">모두의연구소 하계 프로그램 협의 — 국고 10% 이내(1.425억) 집행 방침 결정</div>
+              <div class="event-desc">본회의: 처장·부처장·이주화·김요한·유성근·모두연 박지영팀장 등 참석</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">AI어드바이저 주간업무보고(5.7·11·15) + 테스트용 데이터셋 요청(전산개발팀)</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">교과목 개발 지원금 안내(5건·1천만) + 공동운영(100H·2천만) 공고(~6.5)</div>
+              <div class="event-desc">가구 8,143천원 + PC·모니터 14,124천원 지불 진행</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">신규 직원(권예은·정성희) 합류 — 소모품 구매·업무 리스트·홍보 리플렛 착수</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item planned">
+            <div>
+              <div class="event-name">[계획] 5.21까지 교육용 장비 자료 제출 / AI전략위원회 5.29 개최 / 복합기·프린터 설치</div>
+            </div>
+            <span class="tag tag-plan">계획</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5월 4주 -->
+    <div class="week-block">
+      <div class="week-label-col">
+        <div class="week-chip">5월 4주</div>
+      </div>
+      <div class="week-content">
+        <div class="week-heading">AI전략위원회 개최 · 부트캠프 설명회 · AI어드바이저 UI 확정 ← 현재</div>
+        <div class="event-list">
+          <div class="event-item key">
+            <div>
+              <div class="event-name">🏆 제1회 AI전략위원회 개최 — 11명 중 8명 참석, AI가이드라인 안건 논의</div>
+            </div>
+            <span class="tag tag-key">핵심</span>
+          </div>
+          <div class="event-item key">
+            <div>
+              <div class="event-name">🏆 AI어드바이저 UI 디자인 확정 (5.22·5.29 미팅) → 6.8 현장 실사 예정</div>
+            </div>
+            <span class="tag tag-key">핵심</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">제1차 부트캠프 사업 설명회 — 6.4(목) 34명 참석, STORY+ 하계 학생 모집 시작</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">AI 도구 구독 결제 완료 — Claude Pro(박지은·정성희) + ChatGPT Business(강승연·권예은)</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item planned">
+            <div>
+              <div class="event-name">[계획] 6.8 현장실사 / 6.9 RISE·KT GPU 협의 / 6.11·17 입찰 개찰 / 냉장고·급여결의</div>
+            </div>
+            <span class="tag tag-plan">계획</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /tab-timeline -->
+
+
+<!-- ══════════════════════════════════════════
+     TAB 3: 프로젝트별 진행 현황
+══════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-projects">
+
+  <div class="ai-summary">
+    <div class="ai-summary-label">🚀 프로젝트별 상세 흐름</div>
+    <p>5개 핵심 프로젝트의 <strong>단계별 진행 흐름</strong>과 <strong>현재 상태</strong>를 확인하세요.</p>
+  </div>
+
+  <!-- 프로젝트 1: 부트캠프 -->
+  <div class="card" style="margin-bottom:18px;">
+    <div class="card-title"><div class="dot" style="background:var(--accent3)"></div>① 휴먼AI부트캠프 사업 운영</div>
+    <div class="project-list">
+      <div class="project-row">
+        <div><div class="proj-name">Phase 1. 기반 구축</div><div class="proj-phase">3월 5주 ~ 4월 1주</div></div>
+        <div class="phase-track"><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div></div>
+        <div class="proj-status"><span class="proj-status-badge psb-done">완료</span></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);padding:4px 0 12px;line-height:1.6;">
+        공간 공사 계획 수립 → 행정직원 채용 1명 → EDWARD 과제 개설 → RCMS 이체권한·공인인증서 발급 → 사업 워크숍 참석(용산 로카우스) → 참여교원 간담회(7명) → 법인카드 발급
+      </div>
+      <div class="project-row">
+        <div><div class="proj-name">Phase 2. 협약·예산</div><div class="proj-phase">4월 2~4주</div></div>
+        <div class="phase-track"><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div></div>
+        <div class="proj-status"><span class="proj-status-badge psb-done">완료</span></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);padding:4px 0 12px;line-height:1.6;">
+        1차 협약 변경(통보성) → 간접비 협의(산학협력총괄실) → 2차 협약 변경(관리기준·연구인력 반영) → 예산 변경 EDWARD 반영 → 분야별 위원회 26명 위촉 → 수정사업계획서 작성
+      </div>
+      <div class="project-row">
+        <div><div class="proj-name">Phase 3. 장비·공간 조성</div><div class="proj-phase">4월 2주 ~ 5월 3주</div></div>
+        <div class="phase-track"><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot active"></div><div class="phase-dot next"></div></div>
+        <div class="proj-status"><span class="proj-status-badge psb-active">진행중</span></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);padding:4px 0 12px;line-height:1.6;">
+        사무 공간 기자재 구매 → 가구(814만)·PC·모니터(1,412만) 설치 완료 → 고가기자재(3천만↑) 심의 안건 제출(5.8) → 3천만 미만 교육용 장비 구매 진행 중(예상 1.5억)
+      </div>
+      <div class="project-row">
+        <div><div class="proj-name">Phase 4. 프로그램 운영</div><div class="proj-phase">5월 3주 ~ 현재</div></div>
+        <div class="phase-track"><div class="phase-dot done"></div><div class="phase-dot active"></div><div class="phase-dot next"></div><div class="phase-dot next"></div><div class="phase-dot next"></div></div>
+        <div class="proj-status"><span class="proj-status-badge psb-active">진행중</span></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);padding:4px 0 12px;line-height:1.6;">
+        사업운영위원회 구성(총장 결재) → 교과목 개발·공동운영 공고(~6.5) → 설명회 개최(6.4, 34명) → 하계몰입교육 입찰(6.11 1차 / 6.17 2차 개찰) → TA 선발 절차 진행 중
+      </div>
+    </div>
+    <div class="prog-list" style="margin-top:14px;">
+      <div>
+        <div class="prog-header"><span class="prog-name">전체 진행률</span><span class="prog-pct">45%</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="background:var(--accent3)" data-w="45"></div></div>
+      </div>
+      <div>
+        <div class="prog-header"><span class="prog-name">사업비 집행률</span><span class="prog-pct">7.7%</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="background:var(--accent5)" data-w="7.7"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 프로젝트 2: AI어드바이저 -->
+  <div class="card" style="margin-bottom:18px;">
+    <div class="card-title"><div class="dot" style="background:var(--accent)"></div>② AI어드바이저 시스템 구축</div>
+    <div class="project-list">
+      <div class="project-row">
+        <div><div class="proj-name">요구사항 분석·컨설팅</div><div class="proj-phase">3월 5주 ~ 4월 2주</div></div>
+        <div class="phase-track"><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div></div>
+        <div class="proj-status"><span class="proj-status-badge psb-done">완료</span></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);padding:4px 0 12px;line-height:1.6;">
+        이해관계자 인터뷰(4.2) → 시스템 인프라 적절성 점검(4.10) → EST소프트 미팅(4.15) → 교무교직·취업지원·교육혁신·학생성공센터 4개 부서 기능 컨설팅(4.15 13~17시)
+      </div>
+      <div class="project-row">
+        <div><div class="proj-name">UI·디자인 확정</div><div class="proj-phase">5월 ~ 5월 4주</div></div>
+        <div class="phase-track"><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div></div>
+        <div class="proj-status"><span class="proj-status-badge psb-done">완료</span></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);padding:4px 0 12px;line-height:1.6;">
+        주간업무보고(5.7·11·15) → 테스트용 데이터셋 2회 요청 → 수행계획서·WBS 확인 → UI 디자인 미팅(5.22·5.29) → UI 최종 확정
+      </div>
+      <div class="project-row">
+        <div><div class="proj-name">현장 실사·구축</div><div class="proj-phase">6월 이후</div></div>
+        <div class="phase-track"><div class="phase-dot next"></div><div class="phase-dot next"></div><div class="phase-dot next"></div><div class="phase-dot next"></div><div class="phase-dot next"></div></div>
+        <div class="proj-status"><span class="proj-status-badge psb-plan">예정</span></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);padding:4px 0 12px;line-height:1.6;">
+        6.8(월) 현장 실사 — 서버 리눅스 버전 확인·L4 스위치 계약 변경 검토 → 부처장 포함 담당자 미팅(6.4 완료) → 본 구축 진행
+      </div>
+    </div>
+    <div class="prog-list" style="margin-top:14px;">
+      <div>
+        <div class="prog-header"><span class="prog-name">전체 진행률</span><span class="prog-pct">60%</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="background:var(--accent)" data-w="60"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 프로젝트 3: AI리터러시 -->
+  <div class="card" style="margin-bottom:18px;">
+    <div class="card-title"><div class="dot" style="background:var(--accent2)"></div>③ AI리터러시 교육 체계 구축</div>
+    <div class="project-list">
+      <div class="project-row">
+        <div><div class="proj-name">기획·설계</div><div class="proj-phase">3월 5주 ~ 5월 4주</div></div>
+        <div class="phase-track"><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot active"></div><div class="phase-dot next"></div><div class="phase-dot next"></div></div>
+        <div class="proj-status"><span class="proj-status-badge psb-active">진행중</span></div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);padding:4px 0 12px;line-height:1.6;">
+      계획 수립(3월 5주) → AI가이드라인 기반 교육자료 제작 예정 → AI현황 수요조사 실시·분석 → AI활용 촉진+윤리의식 강화 2트랙 설계 확정 → 대학혁신사업 예산 활용 예정 → AI토론대회 RFP 작성 진행 중
+    </div>
+    <div class="prog-list">
+      <div>
+        <div class="prog-header"><span class="prog-name">전체 진행률</span><span class="prog-pct">35%</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="background:var(--accent2)" data-w="35"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 프로젝트 4: AI전략위원회 -->
+  <div class="card" style="margin-bottom:18px;">
+    <div class="card-title"><div class="dot" style="background:var(--accent4)"></div>④ AI전략위원회 운영</div>
+    <div class="project-list">
+      <div class="project-row">
+        <div><div class="proj-name">위원회 구성</div><div class="proj-phase">3월 5주</div></div>
+        <div class="phase-track"><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div></div>
+        <div class="proj-status"><span class="proj-status-badge psb-done">완료</span></div>
+      </div>
+      <div class="project-row">
+        <div><div class="proj-name">제1회 회의 개최</div><div class="proj-phase">5월 4주</div></div>
+        <div class="phase-track"><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div></div>
+        <div class="proj-status"><span class="proj-status-badge psb-done">완료</span></div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);padding:4px 0 8px;line-height:1.6;">
+      법률·기술 전문가 포함 11명 위촉(3월 5주) → AI가이드라인 사전 검토(4월 4주) → 위원 유선 안내·단체 카카오톡 개설 → 제1회 회의 개최(11명 중 8명 참석) → 회의록 작성(박지은) 수정 중
+    </div>
+  </div>
+
+  <!-- 프로젝트 5: AI 도구·자원 -->
+  <div class="card">
+    <div class="card-title"><div class="dot" style="background:var(--accent6)"></div>⑤ AI 도구·컴퓨팅 자원 지원</div>
+    <div style="font-size:11px;color:var(--muted);padding:0 0 14px;line-height:1.6;">
+      젠스파크(Genspark) 활용 방안 기획(4월 1주) → 부서별 AI 현황 조사 및 정책 로드맵 기초 데이터 수집(4월 2주) → GPU 등 컴퓨팅 자원 수요 조사(5월 3주, 학과장·교수 설문) → AI 도구 구독 결제 완료(4인·5월 4주) → RISE행정팀·KT GPU 협의 예정(6.9)
+    </div>
+    <div class="prog-list">
+      <div>
+        <div class="prog-header"><span class="prog-name">AI 도구 도입 진행률</span><span class="prog-pct">55%</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="background:var(--accent6)" data-w="55"></div></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /tab-projects -->
+
+
+<!-- ══════════════════════════════════════════
+     TAB 4: 팀원별 현황
+══════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-members">
+
+  <div class="ai-summary">
+    <div class="ai-summary-label">👥 팀 구성 & 역할</div>
+    <p>AI전략팀은 <strong>전략 기획 · 사업 운영 · 행정·예산 · 홍보·콘텐츠</strong>의 네 가지 도메인이 유기적으로 맞물려 운영됩니다. 각 팀원이 고유한 전문 영역을 담당하면서 프로젝트별로 협업하는 구조입니다.</p>
+  </div>
+
+  <!-- A. 역할 도메인 맵 -->
+  <div class="section-title">A. 역할 도메인 맵</div>
+  <div class="domain-map">
+
+    <div class="domain-card">
+      <div class="domain-icon">🎯</div>
+      <div class="domain-name">전략 기획</div>
+      <div class="domain-members">
+        <span class="domain-chip" style="background:rgba(59,130,246,.12);color:var(--accent);border-color:rgba(59,130,246,.3)">민승기</span>
+        <span class="domain-chip" style="background:rgba(139,92,246,.12);color:var(--accent2);border-color:rgba(139,92,246,.3)">박지은</span>
+      </div>
+      <ul class="domain-tasks">
+        <li>AI정보처 비전 및 로드맵 수립</li>
+        <li>AI전략위원회 운영·의제 관리</li>
+        <li>AI 가이드라인 검토·제정</li>
+        <li>부서별 AI 현황 조사 및 분석</li>
+        <li>AI토론대회 기획·RFP 작성</li>
+      </ul>
+    </div>
+
+    <div class="domain-card">
+      <div class="domain-icon">🚀</div>
+      <div class="domain-name">사업 운영</div>
+      <div class="domain-members">
+        <span class="domain-chip" style="background:rgba(59,130,246,.12);color:var(--accent);border-color:rgba(59,130,246,.3)">민승기</span>
+        <span class="domain-chip" style="background:rgba(16,185,129,.12);color:var(--accent3);border-color:rgba(16,185,129,.3)">강승연</span>
+      </div>
+      <ul class="domain-tasks">
+        <li>부트캠프 전 주기 운영 관리</li>
+        <li>교과목 개발·공동운영 공고</li>
+        <li>참여교원·연구교수 인사 업무</li>
+        <li>하계 몰입형 교육 준비</li>
+        <li>AI어드바이저 구축 진행</li>
+      </ul>
+    </div>
+
+    <div class="domain-card">
+      <div class="domain-icon">💰</div>
+      <div class="domain-name">행정 · 예산</div>
+      <div class="domain-members">
+        <span class="domain-chip" style="background:rgba(16,185,129,.12);color:var(--accent3);border-color:rgba(16,185,129,.3)">강승연</span>
+        <span class="domain-chip" style="background:rgba(245,158,11,.12);color:var(--accent4);border-color:rgba(245,158,11,.3)">권예은</span>
+        <span class="domain-chip" style="background:rgba(139,92,246,.12);color:var(--accent2);border-color:rgba(139,92,246,.3)">박지은</span>
+      </div>
+      <ul class="domain-tasks">
+        <li>EDWARD·RCMS 예산 집행 관리</li>
+        <li>장비·소모품·가구 구매 행정</li>
+        <li>인건비·기관부담금 지급 처리</li>
+        <li>협약 변경·간사 문의 대응</li>
+        <li>원인행위품의서·지출결의서</li>
+      </ul>
+    </div>
+
+    <div class="domain-card">
+      <div class="domain-icon">📣</div>
+      <div class="domain-name">홍보 · 콘텐츠</div>
+      <div class="domain-members">
+        <span class="domain-chip" style="background:rgba(6,182,212,.12);color:var(--accent6);border-color:rgba(6,182,212,.3)">정성희</span>
+        <span class="domain-chip" style="background:rgba(139,92,246,.12);color:var(--accent2);border-color:rgba(139,92,246,.3)">박지은</span>
+      </div>
+      <ul class="domain-tasks">
+        <li>홍보 리플렛·X배너 제작</li>
+        <li>STORY+ 비교과 프로그램 등록</li>
+        <li>사업 설명회 기획·운영</li>
+        <li>이수증·홈페이지 콘텐츠 관리</li>
+        <li>AI정보처 홈페이지 관리</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- B. 프로젝트 연결도 -->
+  <div class="section-title">B. 팀원 × 프로젝트 연결도</div>
+  <div class="card" style="margin-bottom:22px;">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px;">
+      팀원 이름 위에 마우스를 올리면 해당 팀원의 연결선만 표시됩니다.
+    </div>
+    <div class="conn-wrap">
+
+      <svg id="conn-svg" viewBox="0 0 900 330" xmlns="http://www.w3.org/2000/svg"
+           style="width:100%;display:block;font-family:inherit;">
+
+        <!-- ── 프로젝트 노드 (왼쪽) ── -->
+        <rect x="10" y="18"  width="168" height="36" rx="9" fill="rgba(16,185,129,.12)" stroke="rgba(16,185,129,.4)" stroke-width="1.5"/>
+        <text x="94" y="40"  text-anchor="middle" font-size="12" font-weight="700" fill="#10b981">휴먼AI부트캠프</text>
+
+        <rect x="10" y="74"  width="168" height="36" rx="9" fill="rgba(59,130,246,.12)" stroke="rgba(59,130,246,.4)" stroke-width="1.5"/>
+        <text x="94" y="96"  text-anchor="middle" font-size="12" font-weight="700" fill="#3b82f6">AI어드바이저</text>
+
+        <rect x="10" y="130" width="168" height="36" rx="9" fill="rgba(139,92,246,.12)" stroke="rgba(139,92,246,.4)" stroke-width="1.5"/>
+        <text x="94" y="152" text-anchor="middle" font-size="12" font-weight="700" fill="#8b5cf6">AI리터러시 교육</text>
+
+        <rect x="10" y="186" width="168" height="36" rx="9" fill="rgba(245,158,11,.12)" stroke="rgba(245,158,11,.4)" stroke-width="1.5"/>
+        <text x="94" y="208" text-anchor="middle" font-size="12" font-weight="700" fill="#f59e0b">AI전략위원회</text>
+
+        <rect x="10" y="242" width="168" height="36" rx="9" fill="rgba(6,182,212,.12)" stroke="rgba(6,182,212,.4)" stroke-width="1.5"/>
+        <text x="94" y="264" text-anchor="middle" font-size="12" font-weight="700" fill="#06b6d4">AI 도구·자원</text>
+
+        <!-- ── 연결선 (기본 opacity 0.14, class로 팀원 구분) ── -->
+        <!-- 민승기 -->
+        <path class="cl cl-min" d="M178,36  C380,36  480,72  628,84"  stroke="#3b82f6" stroke-width="2" fill="none" opacity="0.14"/>
+        <path class="cl cl-min" d="M178,92  C380,92  480,80  628,78"  stroke="#3b82f6" stroke-width="2" fill="none" opacity="0.14"/>
+        <path class="cl cl-min" d="M178,148 C360,138 480,108 628,86"  stroke="#3b82f6" stroke-width="1.8" fill="none" opacity="0.14"/>
+        <path class="cl cl-min" d="M178,204 C360,188 480,138 628,92"  stroke="#3b82f6" stroke-width="1.8" fill="none" opacity="0.14"/>
+        <path class="cl cl-min" d="M178,260 C360,238 480,168 628,98"  stroke="#3b82f6" stroke-width="1.8" fill="none" opacity="0.14"/>
+
+        <!-- 박지은 -->
+        <path class="cl cl-park" d="M178,92  C380,98  500,130 698,150" stroke="#8b5cf6" stroke-width="2"   fill="none" opacity="0.14"/>
+        <path class="cl cl-park" d="M178,148 C380,152 500,154 698,156" stroke="#8b5cf6" stroke-width="2"   fill="none" opacity="0.14"/>
+        <path class="cl cl-park" d="M178,204 C380,208 500,172 698,162" stroke="#8b5cf6" stroke-width="1.8" fill="none" opacity="0.14"/>
+
+        <!-- 강승연 -->
+        <path class="cl cl-kang" d="M178,36  C380,78  480,188 628,210" stroke="#10b981" stroke-width="2"   fill="none" opacity="0.14"/>
+        <path class="cl cl-kang" d="M178,260 C380,260 480,238 628,222" stroke="#10b981" stroke-width="1.8" fill="none" opacity="0.14"/>
+
+        <!-- 권예은 -->
+        <path class="cl cl-kwon" d="M178,36  C380,98  520,220 758,244" stroke="#f59e0b" stroke-width="2"   fill="none" opacity="0.14"/>
+
+        <!-- 정성희 -->
+        <path class="cl cl-jung" d="M178,36  C380,58  540,136 836,158" stroke="#06b6d4" stroke-width="2"   fill="none" opacity="0.14"/>
+        <path class="cl cl-jung" d="M178,260 C400,260 580,212 836,172" stroke="#06b6d4" stroke-width="1.8" fill="none" opacity="0.14"/>
+
+        <!-- ── 팀원 노드 — onmouseover/onmouseout 인라인 ── -->
+
+        <!-- 민승기 -->
+        <g onmouseover="connHover('min')" onmouseout="connReset()" style="cursor:pointer;">
+          <circle cx="658" cy="84" r="34" fill="rgba(59,130,246,.15)" stroke="rgba(59,130,246,.45)" stroke-width="2"/>
+          <text x="658" y="79"  text-anchor="middle" font-size="13" font-weight="900" fill="#3b82f6">민승기</text>
+          <text x="658" y="95"  text-anchor="middle" font-size="9"  fill="#94a3b8">전략 총괄</text>
+        </g>
+
+        <!-- 박지은 -->
+        <g onmouseover="connHover('park')" onmouseout="connReset()" style="cursor:pointer;">
+          <circle cx="718" cy="156" r="34" fill="rgba(139,92,246,.15)" stroke="rgba(139,92,246,.45)" stroke-width="2"/>
+          <text x="718" y="151" text-anchor="middle" font-size="13" font-weight="900" fill="#8b5cf6">박지은</text>
+          <text x="718" y="167" text-anchor="middle" font-size="9"  fill="#94a3b8">기획·AI시스템</text>
+        </g>
+
+        <!-- 강승연 -->
+        <g onmouseover="connHover('kang')" onmouseout="connReset()" style="cursor:pointer;">
+          <circle cx="658" cy="216" r="34" fill="rgba(16,185,129,.15)" stroke="rgba(16,185,129,.45)" stroke-width="2"/>
+          <text x="658" y="211" text-anchor="middle" font-size="13" font-weight="900" fill="#10b981">강승연</text>
+          <text x="658" y="227" text-anchor="middle" font-size="9"  fill="#94a3b8">예산·행정</text>
+        </g>
+
+        <!-- 권예은 -->
+        <g onmouseover="connHover('kwon')" onmouseout="connReset()" style="cursor:pointer;">
+          <circle cx="794" cy="246" r="34" fill="rgba(245,158,11,.15)" stroke="rgba(245,158,11,.45)" stroke-width="2"/>
+          <text x="794" y="241" text-anchor="middle" font-size="13" font-weight="900" fill="#f59e0b">권예은</text>
+          <text x="794" y="257" text-anchor="middle" font-size="9"  fill="#94a3b8">구매·행정</text>
+        </g>
+
+        <!-- 정성희 -->
+        <g onmouseover="connHover('jung')" onmouseout="connReset()" style="cursor:pointer;">
+          <circle cx="860" cy="160" r="34" fill="rgba(6,182,212,.15)" stroke="rgba(6,182,212,.45)" stroke-width="2"/>
+          <text x="860" y="155" text-anchor="middle" font-size="13" font-weight="900" fill="#06b6d4">정성희</text>
+          <text x="860" y="171" text-anchor="middle" font-size="9"  fill="#94a3b8">홍보·콘텐츠</text>
+        </g>
+
+        <text x="450" y="318" text-anchor="middle" font-size="10" fill="#64748b">
+          팀원 이름에 마우스를 올리면 해당 연결선만 표시됩니다
+        </text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- C. 팀원별 주요 성과 카드 -->
+  <div class="section-title">C. 팀원별 주요 성과</div>
+  <div class="ach-grid">
+
+    <!-- 민승기 -->
+    <div class="ach-card" style="border-top-color:var(--accent);">
+      <div class="ach-avatar" style="background:linear-gradient(135deg,#3b82f6,#6366f1)">민</div>
+      <div class="ach-person">민승기</div>
+      <div class="ach-role">전략 기획 · 사업 총괄</div>
+      <div class="ach-list">
+        <div class="ach-item">
+          <strong>🏛 AI전략위원회 첫 회의 개최</strong>
+          법률·기술 전문가 포함 11명 위촉 후 제1회 회의 성공적 개최
+        </div>
+        <div class="ach-item">
+          <strong>🚀 부트캠프 설명회 34명 유치</strong>
+          사업 설명회 기획부터 진행까지 전 과정 완수
+        </div>
+        <div class="ach-item">
+          <strong>🤖 AI어드바이저 UI 확정</strong>
+          4개 부서 기능 컨설팅 → EST소프트 협의 → UI 최종 확정
+        </div>
+        <div class="ach-item">
+          <strong>📋 분야별 위원회 26명 위촉</strong>
+          교내외 전문가 구성, 교과목 개발 기반 마련
+        </div>
+      </div>
+    </div>
+
+    <!-- 박지은 -->
+    <div class="ach-card" style="border-top-color:var(--accent2);">
+      <div class="ach-avatar" style="background:linear-gradient(135deg,#8b5cf6,#ec4899)">박</div>
+      <div class="ach-person">박지은</div>
+      <div class="ach-role">기획 · 행정 · 위원회 운영 · AI 시스템</div>
+      <div class="ach-list">
+        <div class="ach-item">
+          <strong>💻 AI전략팀 대시보드 구축</strong>
+          7주치 주간보고 데이터 기반 팀 성과 대시보드 직접 기획·제작. GitHub Pages 배포 및 운영
+        </div>
+        <div class="ach-item">
+          <strong>📊 부서별 AI 현황 조사 완료</strong>
+          전 부서 응답 수합·분석 후 결과보고서 및 요약서 완성
+        </div>
+        <div class="ach-item">
+          <strong>📝 대학혁신사업 계획서 제출</strong>
+          AI리터러시·AI토론대회 2건 사업계획서 수정·최종 제출
+        </div>
+        <div class="ach-item">
+          <strong>🤖 AI 활용 기획서 작성</strong>
+          젠스파크(Genspark) 기능 분석 및 처장 지시 기반 AI 활용 기획서 초안 완성
+        </div>
+      </div>
+    </div>
+
+    <!-- 강승연 -->
+    <div class="ach-card" style="border-top-color:var(--accent3);">
+      <div class="ach-avatar" style="background:linear-gradient(135deg,#10b981,#0ea5e9)">강</div>
+      <div class="ach-person">강승연</div>
+      <div class="ach-role">예산 · 회계 · 구매 행정</div>
+      <div class="ach-list">
+        <div class="ach-item">
+          <strong>💰 간접비 7,125만원 이관 완료</strong>
+          RCMS 신청 및 EDWARD 자금이체 전 과정 처리
+        </div>
+        <div class="ach-item">
+          <strong>📦 사무 공간 인프라 구축</strong>
+          가구·PC·모니터·복합기 등 사업단 공간 완전 구비
+        </div>
+        <div class="ach-item">
+          <strong>📋 교과목 개발 공고 설계·배포</strong>
+          개발 5건(1천만)·공동운영 100시간(2천만) 구조 설계
+        </div>
+        <div class="ach-item">
+          <strong>🗂 사업 공유폴더 체계 구축</strong>
+          5인 공유 아카이브 환경 설계 및 운영 개시
+        </div>
+      </div>
+    </div>
+
+    <!-- 권예은 -->
+    <div class="ach-card" style="border-top-color:var(--accent4);">
+      <div class="ach-avatar" style="background:linear-gradient(135deg,#f59e0b,#ef4444)">권</div>
+      <div class="ach-person">권예은</div>
+      <div class="ach-role">구매 행정 · 업무 체계화</div>
+      <div class="ach-list">
+        <div class="ach-item">
+          <strong>🛒 사업단 소모품·가구 구매 착수</strong>
+          MRO 소모품·주차권·사무가구·기계기구 등 구매 행정 전담
+        </div>
+        <div class="ach-item">
+          <strong>📋 1차년도 업무리스트 체계화</strong>
+          기안 및 기자재 리스트 정리, 사업 전체 업무 가시화
+        </div>
+        <div class="ach-item">
+          <strong>📑 급여결의서 체계 준비</strong>
+          행정직원·참여교원 6월 급여결의서 제출 준비
+        </div>
+        <div class="ach-item">
+          <strong>📋 1차년도 업무 체계 정비</strong>
+          팀 전체 1차년도 업무리스트 시트 작성·정리. 사업 전체 업무를 한눈에 파악할 수 있는 기반 마련
+        </div>
+      </div>
+    </div>
+
+    <!-- 정성희 -->
+    <div class="ach-card" style="border-top-color:var(--accent6);">
+      <div class="ach-avatar" style="background:linear-gradient(135deg,#06b6d4,#3b82f6)">정</div>
+      <div class="ach-person">정성희</div>
+      <div class="ach-role">홍보 · 교육 프로그램</div>
+      <div class="ach-list">
+        <div class="ach-item">
+          <strong>🎉 설명회 34명 참석 성과</strong>
+          리플렛·X배너·STORY+ 등록·다과 준비 등 설명회 전 과정 기획
+        </div>
+        <div class="ach-item">
+          <strong>📄 홍보물 일체 제작 완료</strong>
+          홍보 리플렛 시안 완성, X배너 제작 진행
+        </div>
+        <div class="ach-item">
+          <strong>🎓 이수증 초안 작성</strong>
+          하계 몰입형 프로그램 이수증 서식 초안 완성
+        </div>
+        <div class="ach-item">
+          <strong>📁 산학프로젝트 신청서 착수</strong>
+          기업 안내용 예산집행내역서·보고서 초안 작성 시작
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /tab-members -->
+
+
+<!-- ══════════════════════════════════════════
+     TAB 5: 인사이트
+══════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-insights">
+
+  <div class="ai-summary">
+    <div class="ai-summary-label">💡 7주 업무 흐름 인사이트</div>
+    <p>주간보고 전체 데이터에서 발견한 <strong>업무 패턴 · 구조적 흐름 · 리스크 · 추천 액션</strong>입니다.</p>
+  </div>
+
+  <div class="section-title">업무 패턴 & 흐름 분석</div>
+  <div class="insight-grid">
+
+    <div class="insight-box blue">
+      <div class="insight-icon">📈</div>
+      <div class="insight-title">기반 구축 → 운영 전환 완료</div>
+      <div class="insight-body">3~4월은 <strong>EDWARD 과제 개설·협약 변경·채용·공간 조성</strong> 등 인프라 구축에 집중됐고, 5월부터는 설명회·위원회·교과목 공고 등 <strong>실질 운영 단계로 전환</strong>이 이루어졌습니다. 7주 만의 구조 전환은 매우 빠른 속도입니다.</div>
+    </div>
+
+    <div class="insight-box green">
+      <div class="insight-icon">🔄</div>
+      <div class="insight-title">협약 변경이 사업 속도를 좌우</div>
+      <div class="insight-body">1차·2차 협약 변경(4월 2~4주)이 예산 집행·장비 구매·인력 운영의 선행 조건이었습니다. <strong>협약 변경 완료 이후 구매·채용·공고가 연쇄적으로 가속</strong>되는 패턴이 확인됩니다. 향후 변경 사항은 최대한 조기에 처리하는 것이 유리합니다.</div>
+    </div>
+
+    <div class="insight-box purple">
+      <div class="insight-icon">🔗</div>
+      <div class="insight-title">3대 프로젝트 동시 중요 단계 진입</div>
+      <div class="insight-body">부트캠프(하계 입찰)·AI어드바이저(현장 실사)·AI리터러시(교육안 설계)가 <strong>6월에 동시에 핵심 단계</strong>에 진입합니다. 각 프로젝트의 의사결정 시점이 겹치는 6월 초를 집중 관리 포인트로 설정해야 합니다.</div>
+    </div>
+
+    <div class="insight-box amber">
+      <div class="insight-icon">💰</div>
+      <div class="insight-title">예산 집행 구조적 후반 쏠림</div>
+      <div class="insight-body">현재 집행률 7.7%. 교육용 장비(1.5억)·모두연 프로그램(최대 1.4억)·하계몰입교육 용역이 <strong>6~7월에 집중 예정</strong>입니다. 대형 지출 건의 행정 절차(품의→계약→납품)가 예상보다 길어질 수 있어 선제적 일정 관리가 필요합니다.</div>
+    </div>
+
+    <div class="insight-box cyan">
+      <div class="insight-icon">⏳</div>
+      <div class="insight-title">AI토론대회 — 기획 착수 대비 진행 지연</div>
+      <div class="insight-body">4월 1주 착수했으나 5월 4주까지 RFP 미확정 상태입니다. <strong>기획-업체선정-실행까지 약 3개월</strong>이 필요한 행사 특성상, 6월 내 업체를 확정하지 못하면 하반기 개최 일정 전체가 압박을 받을 수 있습니다.</div>
+    </div>
+
+    <div class="insight-box red">
+      <div class="insight-icon">📋</div>
+      <div class="insight-title">결재 대기 건이 구매 속도의 병목</div>
+      <div class="insight-body">원인행위품의서·지출결의서 결재 대기 건이 복수 존재하며, <strong>결재 완료 → 구매 신청 → 납품 검수</strong>의 파이프라인이 길어 실제 집행까지 시간이 소요됩니다. 결재 진행 상황의 주기적 모니터링이 집행률 제고의 핵심입니다.</div>
+    </div>
+
+  </div>
+
+  <div class="section-title">다음 4주 핵심 액션 플랜</div>
+  <div class="card">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+
+      <div style="background:var(--surface2);border-radius:10px;padding:13px 16px;border-left:3px solid var(--accent);">
+        <div style="font-size:12px;font-weight:700;margin-bottom:4px;">🔵 즉시 (6월 1~2주)</div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.7;">
+          • 6.8 AI어드바이저 현장 실사 — 서버 스펙 확인 및 계약 변경 검토<br>
+          • 6.9 RISE행정팀·KT GPU 협의<br>
+          • 6.11 하계몰입교육 1차 개찰 → 6.17 최종 선정<br>
+          • 교과목 개발·공동운영 신청 마감(6.5) 후 사업운영위원회 개최 준비
+        </div>
+      </div>
+
+      <div style="background:var(--surface2);border-radius:10px;padding:13px 16px;border-left:3px solid var(--accent4);">
+        <div style="font-size:12px;font-weight:700;margin-bottom:4px;">🟡 단기 (6월 3~4주)</div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.7;">
+          • 교육용 연구장비(1.5억) 구매 절차 완료<br>
+          • AI토론대회 RFP 최종본 확정 및 업체 선정<br>
+          • AI리터러시 2트랙 교육자료 제작 착수 (대학혁신사업 예산 활용)<br>
+          • 결재 대기 건 일괄 현황 점검 및 집행 가속화
+        </div>
+      </div>
+
+      <div style="background:var(--surface2);border-radius:10px;padding:13px 16px;border-left:3px solid var(--accent2);">
+        <div style="font-size:12px;font-weight:700;margin-bottom:4px;">🟣 중기 (7월~)</div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.7;">
+          • 하계몰입교육 운영 (TA 선발·이수증·학점인정 확정)<br>
+          • AI어드바이저 본격 구축 착수<br>
+          • 2026.9 AI전환 비전 선포식 및 AI연구센터 라운지 개소 준비<br>
+          • 사업비 집행률 30% 이상 달성 목표
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /tab-insights -->
+
+</main>
+
+<script>
+/* ═══════════════════════════════════════
+   햄버거 메뉴
+═══════════════════════════════════════ */
+function toggleHamburger() {
+  var menu = document.getElementById('hamburger-menu');
+  var btn  = document.getElementById('hamburger-btn');
+  var isOpen = menu.classList.contains('open');
+  if (isOpen) {
+    menu.classList.remove('open');
+    btn.classList.remove('open');
+    btn.textContent = '☰';
+  } else {
+    menu.classList.add('open');
+    btn.classList.add('open');
+    btn.textContent = '✕';
+  }
+}
+
+function selectHamburgerTab(id, el) {
+  // 드롭다운 닫기
+  document.getElementById('hamburger-menu').classList.remove('open');
+  var hBtn = document.getElementById('hamburger-btn');
+  hBtn.classList.remove('open');
+  hBtn.textContent = '☰';
+
+  // hmenu-item active 업데이트
+  document.querySelectorAll('.hmenu-item').forEach(function(b){ b.classList.remove('active'); });
+  el.classList.add('active');
+
+  // 탭 패널 전환 (데스크탑 탭 버튼도 동기화)
+  document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('tab-' + id).classList.add('active');
+
+  // 데스크탑 탭 버튼 active 동기화
+  var desktopBtns = document.querySelectorAll('.tab-btn');
+  for (var i = 0; i < desktopBtns.length; i++) {
+    var onclick = desktopBtns[i].getAttribute('onclick') || '';
+    if (onclick.indexOf("'" + id + "'") >= 0) {
+      desktopBtns[i].classList.add('active');
+      break;
+    }
+  }
+
+  // 프로그레스 바 애니메이션
+  setTimeout(function(){
+    document.querySelectorAll('.prog-fill').forEach(function(bar){
+      bar.style.width = '0';
+      setTimeout(function(){ bar.style.width = bar.dataset.w + '%'; }, 50);
+    });
+  }, 50);
+}
+
+// 화면 바깥 클릭 시 메뉴 닫기
+document.addEventListener('click', function(e) {
+  var menu = document.getElementById('hamburger-menu');
+  var btn  = document.getElementById('hamburger-btn');
+  if (!menu || !btn) return;
+  if (!menu.contains(e.target) && !btn.contains(e.target)) {
+    menu.classList.remove('open');
+    btn.classList.remove('open');
+    btn.textContent = '☰';
+  }
+});
+
+/* ═══════════════════════════════════════
+   연결도 호버 인터랙션 — 전역 함수 (인라인 onmouseover 호출)
+═══════════════════════════════════════ */
+function connHover(member) {
+  var svg = document.getElementById('conn-svg');
+  if (!svg) return;
+  var all = svg.querySelectorAll('.cl');
+  var mine = svg.querySelectorAll('.cl-' + member);
+  for (var i = 0; i < all.length; i++) {
+    all[i].setAttribute('opacity', '0.04');
+    all[i].setAttribute('stroke-width', '1.5');
+  }
+  for (var j = 0; j < mine.length; j++) {
+    mine[j].setAttribute('opacity', '1');
+    mine[j].setAttribute('stroke-width', '3');
+  }
+}
+function connReset() {
+  var svg = document.getElementById('conn-svg');
+  if (!svg) return;
+  var all = svg.querySelectorAll('.cl');
+  for (var i = 0; i < all.length; i++) {
+    all[i].setAttribute('opacity', '0.14');
+    all[i].setAttribute('stroke-width', '2');
+  }
+}
+
+/* ═══════════════════════════════════════
+   Phase step 초기화 (Executive View)
+═══════════════════════════════════════ */
+function initPhaseSteps() {
+  var phases = {
+    'ps-bootcamp':  [1,1,1,1,0],
+    'ps-advisor':   [1,1,1,1,0],
+    'ps-literacy':  [1,1,1,0,0],
+    'ps-committee': [1,1,0,0,0],
+    'ps-debate':    [1,1,0,0,0],
+    'ps-tools':     [1,1,0,0,0]
+  };
+  var colors = {
+    'ps-bootcamp':  '#10b981',
+    'ps-advisor':   '#3b82f6',
+    'ps-literacy':  '#8b5cf6',
+    'ps-committee': '#f59e0b',
+    'ps-debate':    '#06b6d4',
+    'ps-tools':     '#ef4444'
+  };
+  Object.keys(phases).forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = '';
+    phases[id].forEach(function(done) {
+      var step = document.createElement('div');
+      step.className = 'phase-step' + (done ? ' done' : '');
+      var fill = document.createElement('div');
+      fill.className = 'phase-step-fill';
+      fill.style.background = colors[id];
+      step.appendChild(fill);
+      el.appendChild(step);
+      if (done) {
+        setTimeout(function(){ fill.style.width = '100%'; }, 300);
+      }
+    });
+  });
+}
+document.addEventListener('DOMContentLoaded', initPhaseSteps);
+
+/* ═══════════════════════════════════════
+   탭 전환
+═══════════════════════════════════════ */
+function showTab(id, el) {
+  document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('tab-' + id).classList.add('active');
+  if (el) {
+    el.classList.add('active');
+    try { el.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'center' }); } catch(e){}
+  }
+  setTimeout(function(){
+    document.querySelectorAll('.prog-fill').forEach(function(bar){
+      bar.style.width = '0';
+      setTimeout(function(){ bar.style.width = bar.dataset.w + '%'; }, 50);
+    });
+
+  }, 50);
+}
+setTimeout(function(){
+  document.querySelectorAll('.prog-fill').forEach(function(el){
+    el.style.width = el.dataset.w + '%';
+  });
+}, 400);
+
+/* ═══════════════════════════════════════
+   테마 토글
+═══════════════════════════════════════ */
+var themeBtn = document.getElementById('theme-toggle');
+var isLight = false;
+function toggleTheme() {
+  isLight = !isLight;
+  document.documentElement.classList.toggle('light', isLight);
+  themeBtn.textContent = isLight ? '🌙' : '☀️';
+  try { localStorage.setItem('theme', isLight ? 'light' : 'dark'); } catch(e){}
+}
+(function(){
+  try {
+    if (localStorage.getItem('theme') === 'light') {
+      isLight = true;
+      document.documentElement.classList.add('light');
+      themeBtn.textContent = '🌙';
+    } else {
+      themeBtn.textContent = '☀️';
+    }
+  } catch(e){ themeBtn.textContent = '☀️'; }
+})();
+
+
+</script>
+</body>
+</html>
