@@ -1,0 +1,2446 @@
+<!DOCTYPE html>
+<!-- saved from url=(0063)file:///C:/Users/Owner/Downloads/weekly-report-dashboard_5.html -->
+<html lang="ko" class="light"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI전략팀 업무 대시보드</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com/">
+  <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+  <link href="./index_files/css2" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#09111f; --surface:#111c2e; --surface2:#172035; --border:#1e2d47;
+      --accent:#3b82f6; --accent2:#8b5cf6; --accent3:#10b981;
+      --accent4:#f59e0b; --accent5:#ef4444; --accent6:#06b6d4;
+      --text:#e2e8f0; --muted:#64748b; --shadow:rgba(0,0,0,.4);
+      --header-bg:linear-gradient(135deg,#09111f,#111c2e);
+      --summary-bg:linear-gradient(135deg,rgba(59,130,246,.07),rgba(139,92,246,.07));
+      --summary-border:rgba(59,130,246,.25);
+      --summary-text:#cbd5e1; --summary-strong:#fff;
+    }
+    html.light {
+      --bg:#f1f5f9; --surface:#ffffff; --surface2:#f8fafc; --border:#e2e8f0;
+      --accent:#2563eb; --accent2:#7c3aed; --accent3:#059669;
+      --accent4:#d97706; --accent5:#dc2626; --accent6:#0891b2;
+      --text:#0f172a; --muted:#94a3b8; --shadow:rgba(0,0,0,.1);
+      --header-bg:linear-gradient(135deg,#ffffff,#f1f5f9);
+      --summary-bg:linear-gradient(135deg,rgba(37,99,235,.05),rgba(124,58,237,.05));
+      --summary-border:rgba(37,99,235,.2);
+      --summary-text:#334155; --summary-strong:#0f172a;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{background:var(--bg);color:var(--text);font-family:'Inter','Noto Sans KR',sans-serif;min-height:100vh;transition:background .3s,color .3s;}
+
+    /* ── Header ── */
+    header{
+      padding:14px 48px; border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between;
+      background:var(--header-bg); position:sticky; top:0; z-index:100;
+      backdrop-filter:blur(8px);
+      min-height:68px;
+    }
+    .logo-area{display:flex;align-items:center;gap:0; flex-shrink:0;}
+    .logo-badge{
+      height:48px; width:auto; flex-shrink:0;
+      background:none; border-radius:0;
+      display:flex; align-items:center;
+    }
+    .logo-text h1{font-size:15px;font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+    .logo-text span{font-size:10px;color:var(--muted);font-family:'Inter',monospace;}
+    .header-right{display:flex;align-items:center;gap:8px; flex-shrink:0;}
+
+    /* 햄버거 버튼 — 모바일에서만 표시 */
+    .hamburger-btn {
+      display: none; /* 데스크탑에서는 숨김 */
+      width: 36px; height: 36px; border-radius: 9px;
+      background: var(--surface2); border: 1px solid var(--border);
+      font-size: 18px; cursor: pointer;
+      align-items: center; justify-content: center;
+      transition: background .2s; line-height: 1;
+      color: var(--text);
+    }
+    .hamburger-btn:hover { background: var(--border); }
+    .hamburger-btn.open { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* 햄버거 드롭다운 */
+    .hamburger-menu {
+      display: none; /* 항상 숨김 — JS로 토글 */
+      position: fixed;
+      top: 52px; right: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.3);
+      z-index: 200;
+      min-width: 180px;
+      overflow: hidden;
+      flex-direction: column;
+    }
+    .hamburger-menu.open { display: flex; }
+    .hmenu-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 13px 18px;
+      background: transparent; border: none;
+      color: var(--muted); font-family: 'Inter','Noto Sans KR',sans-serif;
+      font-size: 13px; font-weight: 500;
+      cursor: pointer; text-align: left;
+      border-bottom: 1px solid var(--border);
+      transition: background .15s, color .15s;
+    }
+    .hmenu-item:last-child { border-bottom: none; }
+    .hmenu-item:hover { background: var(--surface2); color: var(--text); }
+    .hmenu-item.active {
+      background: rgba(59,130,246,.12);
+      color: var(--accent); font-weight: 700;
+    }
+
+    /* 모바일 헤더 — 한 줄 유지 */
+    @media(max-width:768px){
+      header{ padding:10px 14px; min-height:52px; }
+      .logo-badge{ width:32px; height:32px; font-size:15px; }
+      .logo-text h1{ font-size:13px; }
+      .logo-text span{ display:none; }
+      .week-badge{ display:none; }
+      .hamburger-btn{ display:flex; } /* 모바일에서만 표시 */
+      .tab-bar{ display:none; } /* 모바일에서 탭 바 숨김 */
+    }
+
+    /* Tab nav */
+    .tab-nav{
+      display: flex; gap: 5px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 5px;
+      overflow-x: auto; overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .tab-nav::-webkit-scrollbar { display: none; }
+    .tab-btn{
+      padding: 10px 18px; border-radius: 9px; border: none; background: transparent;
+      color: var(--muted); font-family: 'Inter','Noto Sans KR',sans-serif;
+      font-size: 14px; font-weight: 500;
+      cursor: pointer; transition: all .2s;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .tab-btn.active { background: var(--accent); color: #fff; }
+    .tab-btn:not(.active):hover { color: var(--text); background: var(--border); }
+
+    /* 모바일 탭 바 */
+    @media(max-width:768px){
+      .tab-bar {
+        padding: 8px 10px;
+        top: 52px; /* 모바일 헤더 높이에 맞춤 */
+      }
+      .tab-nav {
+        border-radius: 8px;
+        /* 오른쪽 끝 페이드 힌트 */
+        -webkit-mask-image: linear-gradient(to right, black 82%, transparent 100%);
+        mask-image: linear-gradient(to right, black 82%, transparent 100%);
+      }
+      .tab-btn { font-size: 11px; padding: 6px 12px; }
+      main { padding: 14px 14px 48px; }
+    }
+
+    .week-badge{
+      background:var(--surface2);border:1px solid var(--border);
+      padding:5px 12px;border-radius:18px;
+      font-size:11px;color:var(--accent4);font-family:'Inter',monospace;font-weight:700;
+    }
+    .theme-toggle{
+      width:36px;height:36px;border-radius:9px;
+      background:var(--surface2);border:1px solid var(--border);
+      font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+      transition:background .2s,transform .15s;line-height:1;
+    }
+    .theme-toggle:hover{background:var(--border);transform:scale(1.08);}
+
+    /* ── Layout ── */
+    main{padding:16px 32px 48px;}
+    .tab-panel{display:none;}
+    .tab-panel.active{display:block;}
+
+    /* Section */
+    .section-title{
+      font-size:11px;font-weight:700;letter-spacing:2px;
+      text-transform:uppercase;color:var(--muted);margin-bottom:10px;padding-left:2px;
+    }
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+    .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
+    .full{grid-column:1/-1;}
+
+    /* Card */
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;}
+    .card-title{font-size:13px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+    .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+
+    /* KPI */
+    .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+    .kpi-card{
+      background:var(--surface);border:1px solid var(--border);
+      border-radius:13px;padding:22px 24px;position:relative;overflow:hidden;
+      transition:transform .2s,box-shadow .2s;
+    }
+    .kpi-card:hover{transform:translateY(-2px);box-shadow:0 8px 28px var(--shadow);}
+    .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:13px 13px 0 0;}
+    .kpi-card.blue::before{background:var(--accent);}
+    .kpi-card.green::before{background:var(--accent3);}
+    .kpi-card.purple::before{background:var(--accent2);}
+    .kpi-card.amber::before{background:var(--accent4);}
+    .kpi-card.cyan::before{background:var(--accent6);}
+    .kpi-label{font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:500;}
+    .kpi-val{font-size:38px;font-weight:900;font-family:'Inter','Noto Sans KR',sans-serif;-webkit-font-smoothing:antialiased;}
+    .kpi-card.blue .kpi-val{color:var(--accent);}
+    .kpi-card.green .kpi-val{color:var(--accent3);}
+    .kpi-card.purple .kpi-val{color:var(--accent2);}
+    .kpi-card.amber .kpi-val{color:var(--accent4);}
+    .kpi-card.cyan .kpi-val{color:var(--accent6);}
+    .kpi-sub{font-size:11px;color:var(--muted);margin-top:5px;}
+
+    /* AI Summary */
+    .ai-summary{
+      background:var(--summary-bg);border:1px solid var(--summary-border);
+      border-radius:14px;padding:18px 24px;margin-bottom:16px;position:relative;overflow:hidden;
+    }
+    .ai-summary::before{
+      content:'';position:absolute;top:0;left:0;right:0;height:2px;
+      background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent3));
+    }
+    .ai-summary-label{font-size:9px;letter-spacing:2px;color:var(--accent);font-weight:700;text-transform:uppercase;margin-bottom:9px;}
+    .ai-summary p{font-size:13px;line-height:1.9;color:var(--summary-text);}
+    .ai-summary strong{color:var(--summary-strong);font-weight:700;}
+
+    /* ── Mega Timeline ── */
+    .mega-tl{display:flex;flex-direction:column;gap:0;}
+    .week-block{
+      display:grid;grid-template-columns:130px 1fr;gap:0;
+      border-left:2px solid var(--border);margin-left:12px;
+    }
+    .week-label-col{
+      padding:0 20px 0 0;position:relative;
+    }
+    .week-label-col::before{
+      content:'';position:absolute;left:-7px;top:20px;
+      width:12px;height:12px;border-radius:50%;
+      border:2px solid var(--accent);background:var(--bg);
+    }
+    .week-label-col.done::before{background:var(--accent3);border-color:var(--accent3);}
+    .week-chip{
+      background:var(--surface2);border:1px solid var(--border);
+      border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;
+      color:var(--accent4);font-family:'Inter',monospace;display:inline-block;margin-top:14px;
+    }
+    .week-content{padding:14px 0 28px 20px;}
+    .week-heading{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:10px;letter-spacing:.5px;}
+
+    .event-list{display:flex;flex-direction:column;gap:7px;}
+    .event-item{
+      background:var(--surface2);border-radius:9px;padding:11px 14px;
+      border-left:3px solid var(--border);
+      display:grid;grid-template-columns:1fr auto;gap:8px;align-items:start;
+    }
+    .event-item.done{border-left-color:var(--accent3);}
+    .event-item.progress{border-left-color:var(--accent);}
+    .event-item.planned{border-left-color:var(--accent4);}
+    .event-item.key{border-left-color:var(--accent2);}
+    .event-name{font-size:12px;font-weight:600;line-height:1.4;}
+    .event-owner{font-size:10px;color:var(--muted);background:var(--bg);border:1px solid var(--border);padding:1px 7px;border-radius:8px;white-space:nowrap;}
+    .event-desc{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5;}
+
+    /* ── Project Tracker ── */
+    .project-list{display:flex;flex-direction:column;gap:0;}
+    .project-row{
+      border-bottom:1px solid var(--border);
+      padding:18px 0;display:grid;grid-template-columns:200px 1fr 120px;gap:16px;align-items:center;
+    }
+    .project-row:first-child{border-top:1px solid var(--border);}
+    .proj-name{font-size:13px;font-weight:700;}
+    .proj-phase{font-size:10px;color:var(--muted);margin-top:3px;}
+
+    .phase-track{display:flex;gap:4px;}
+    .phase-dot{
+      flex:1;height:8px;border-radius:4px;background:var(--surface2);
+      border:1px solid var(--border);position:relative;overflow:hidden;
+    }
+    .phase-dot.done{background:var(--accent3);border-color:var(--accent3);}
+    .phase-dot.active{background:var(--accent);border-color:var(--accent);}
+    .phase-dot.next{background:var(--accent4);border-color:var(--accent4);opacity:.5;}
+
+    .proj-status{text-align:right;}
+    .proj-status-badge{
+      font-size:10px;padding:3px 10px;border-radius:10px;font-weight:700;
+    }
+    .psb-active{background:rgba(59,130,246,.15);color:var(--accent);}
+    .psb-done{background:rgba(16,185,129,.15);color:var(--accent3);}
+    .psb-plan{background:rgba(245,158,11,.15);color:var(--accent4);}
+    .psb-key{background:rgba(139,92,246,.15);color:var(--accent2);}
+
+    /* ── Progress bar ── */
+    .prog-list{display:flex;flex-direction:column;gap:13px;}
+    .prog-header{display:flex;justify-content:space-between;margin-bottom:5px;}
+    .prog-name{font-size:12px;font-weight:600;}
+    .prog-pct{font-size:11px;color:var(--muted);font-family:'Inter',monospace;}
+    .prog-bar{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;}
+    .prog-fill{height:100%;border-radius:3px;width:0;transition:width 1.2s cubic-bezier(.4,0,.2,1);}
+
+    /* ── Issue ── */
+    .issue-item{
+      background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);
+      border-radius:10px;padding:13px 16px;margin-bottom:9px;
+    }
+    .issue-item:last-child{margin-bottom:0;}
+    .issue-title{font-size:12px;font-weight:700;margin-bottom:5px;}
+    .issue-desc{font-size:11px;color:var(--muted);line-height:1.6;}
+    .issue-action{font-size:10px;color:var(--accent4);margin-top:5px;font-weight:600;}
+
+    /* ── Member weekly grid ── */
+    .member-week-grid{
+      display:grid;grid-template-columns:100px repeat(7,1fr);
+      gap:4px;font-size:10px;
+    }
+    .mwg-header{
+      background:var(--surface2);border:1px solid var(--border);
+      border-radius:6px;padding:5px 8px;font-weight:700;font-family:'Inter',monospace;
+      color:var(--muted);text-align:center;
+    }
+    .mwg-name{
+      background:var(--surface2);border:1px solid var(--border);
+      border-radius:6px;padding:8px;font-weight:700;display:flex;align-items:center;
+    }
+    .mwg-cell{
+      border-radius:6px;padding:6px 4px;text-align:center;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    }
+    .mwg-cell.active{background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);}
+    .mwg-cell.heavy{background:rgba(59,130,246,.3);border:1px solid rgba(59,130,246,.5);}
+    .mwg-cell.light{background:var(--surface2);border:1px solid var(--border);opacity:.6;}
+    .mwg-count{font-size:14px;font-weight:900;font-family:'Inter',monospace;color:var(--accent);}
+    .mwg-cell.heavy .mwg-count{color:var(--accent2);}
+    .mwg-cell.light .mwg-count{color:var(--muted);}
+
+    /* Tags */
+    .tag{font-size:9px;padding:2px 6px;border-radius:7px;font-weight:600;}
+    .tag-done{background:rgba(16,185,129,.15);color:var(--accent3);}
+    .tag-plan{background:rgba(245,158,11,.15);color:var(--accent4);}
+    .tag-key{background:rgba(139,92,246,.15);color:var(--accent2);}
+
+    /* Budget */
+    .budget-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+    .budget-item{
+      background:#ffffff;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:24px 22px;
+      box-shadow:0 2px 8px rgba(0,0,0,.06);
+      transition:transform .2s, box-shadow .2s;
+    }
+    .budget-item:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.1);}
+    html:not(.light) .budget-item{ background:var(--surface); }
+    .budget-label{font-size:13px;color:var(--muted);margin-bottom:10px;font-weight:600;}
+    .budget-val{font-size:26px;font-weight:900;font-family:'Inter',monospace;color:var(--accent3);line-height:1.2;margin-bottom:4px;}
+    .budget-sub{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.6;}
+
+    /* ── Insight — 번호+타임라인+컬러 스타일 ── */
+    .insight-grid {
+      display: flex; flex-direction: column; gap: 20px; margin-bottom: 20px;
+    }
+    .insight-box {
+      display: grid;
+      grid-template-columns: 72px 72px 1fr;
+      gap: 0; align-items: stretch;
+      border-radius: 16px; overflow: hidden;
+      border: 1px solid var(--border);
+      transition: transform .2s, box-shadow .2s;
+      min-height: 110px;
+    }
+    .insight-box:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px var(--shadow);
+    }
+    /* 번호 컬럼 */
+    .insight-num {
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; font-weight: 900; font-family: 'Inter', monospace;
+      color: #fff; letter-spacing: -1px;
+    }
+    /* 아이콘 컬럼 */
+    .insight-icon-col {
+      display: flex; align-items: center; justify-content: center;
+      font-size: 30px;
+    }
+    /* 내용 컬럼 */
+    .insight-content {
+      padding: 20px 22px; background: var(--surface);
+      border-left: 1px solid var(--border);
+      display: flex; flex-direction: column; justify-content: center;
+    }
+    .insight-title { font-size: 16px; font-weight: 700; margin-bottom: 7px; }
+    .insight-body  { font-size: 14px; color: var(--muted); line-height: 1.75; }
+    .insight-body strong { color: var(--text); }
+
+    /* 컬러 테마 */
+    .insight-box.blue   .insight-num { background: #2563eb; }
+    .insight-box.blue   .insight-icon-col { background: rgba(37,99,235,.12); }
+    .insight-box.blue   .insight-title { color: #2563eb; }
+    html:not(.light) .insight-box.blue   .insight-num { background: #1d4ed8; }
+    html:not(.light) .insight-box.blue   .insight-icon-col { background: rgba(59,130,246,.15); }
+    html:not(.light) .insight-box.blue   .insight-title { color: var(--accent); }
+
+    .insight-box.green  .insight-num { background: #059669; }
+    .insight-box.green  .insight-icon-col { background: rgba(5,150,105,.12); }
+    .insight-box.green  .insight-title { color: #059669; }
+    html:not(.light) .insight-box.green  .insight-num { background: #047857; }
+    html:not(.light) .insight-box.green  .insight-icon-col { background: rgba(16,185,129,.15); }
+    html:not(.light) .insight-box.green  .insight-title { color: var(--accent3); }
+
+    .insight-box.purple .insight-num { background: #7c3aed; }
+    .insight-box.purple .insight-icon-col { background: rgba(124,58,237,.12); }
+    .insight-box.purple .insight-title { color: #7c3aed; }
+    html:not(.light) .insight-box.purple .insight-num { background: #6d28d9; }
+    html:not(.light) .insight-box.purple .insight-icon-col { background: rgba(139,92,246,.15); }
+    html:not(.light) .insight-box.purple .insight-title { color: var(--accent2); }
+
+    .insight-box.amber  .insight-num { background: #d97706; }
+    .insight-box.amber  .insight-icon-col { background: rgba(217,119,6,.12); }
+    .insight-box.amber  .insight-title { color: #d97706; }
+    html:not(.light) .insight-box.amber  .insight-num { background: #b45309; }
+    html:not(.light) .insight-box.amber  .insight-icon-col { background: rgba(245,158,11,.15); }
+    html:not(.light) .insight-box.amber  .insight-title { color: var(--accent4); }
+
+    .insight-box.cyan   .insight-num { background: #0891b2; }
+    .insight-box.cyan   .insight-icon-col { background: rgba(8,145,178,.12); }
+    .insight-box.cyan   .insight-title { color: #0891b2; }
+    html:not(.light) .insight-box.cyan   .insight-num { background: #0e7490; }
+    html:not(.light) .insight-box.cyan   .insight-icon-col { background: rgba(6,182,212,.15); }
+    html:not(.light) .insight-box.cyan   .insight-title { color: var(--accent6); }
+
+    .insight-box.red    .insight-num { background: #dc2626; }
+    .insight-box.red    .insight-icon-col { background: rgba(220,38,38,.12); }
+    .insight-box.red    .insight-title { color: #dc2626; }
+    html:not(.light) .insight-box.red    .insight-num { background: #b91c1c; }
+    html:not(.light) .insight-box.red    .insight-icon-col { background: rgba(239,68,68,.15); }
+    html:not(.light) .insight-box.red    .insight-title { color: var(--accent5); }
+
+    @media(max-width:768px){
+      .insight-box { grid-template-columns: 56px 56px 1fr; min-height:90px; }
+      .insight-num { font-size: 20px; }
+      .insight-icon-col { font-size: 22px; }
+      .insight-content { padding: 14px 16px; }
+      .insight-title { font-size: 14px; }
+      .insight-body { font-size: 12px; }
+    }
+
+    @media(max-width:960px){
+      header{padding:16px 18px;flex-wrap:wrap;gap:10px;}
+      main{padding:18px 18px 40px;}
+      .kpi-row{grid-template-columns:repeat(2,1fr);}
+      .grid2,.grid3{grid-template-columns:1fr;}
+      .tab-nav{display:none;}
+      .budget-grid{grid-template-columns:1fr;}
+      .insight-grid{grid-template-columns:1fr;}
+      .week-block{grid-template-columns:1fr;}
+      .member-week-grid{grid-template-columns:repeat(4,1fr);}
+      .project-row{grid-template-columns:1fr;}
+    }
+
+    /* ── Domain Map ── */
+    .domain-map { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:22px; }
+
+    /* 모바일: 도메인 맵 1열 */
+    @media(max-width:768px){
+      .domain-map { grid-template-columns: 1fr 1fr; gap:10px; }
+      .domain-card { padding:14px 12px; }
+      .domain-icon { font-size:22px; margin-bottom:8px; }
+      .domain-name { font-size:11px; margin-bottom:8px; }
+      .domain-tasks li { font-size:10px; }
+    }
+    .domain-card {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:14px; padding:18px 16px; text-align:center;
+      transition:transform .2s, box-shadow .2s;
+    }
+    .domain-card:hover { transform:translateY(-3px); box-shadow:0 8px 24px var(--shadow); }
+    .domain-icon { font-size:26px; margin-bottom:10px; }
+    .domain-name { font-size:12px; font-weight:700; margin-bottom:10px; }
+    .domain-members { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; margin-bottom:10px; }
+    .domain-chip {
+      font-size:10px; font-weight:600; padding:2px 9px; border-radius:10px;
+      border:1px solid var(--border);
+    }
+    .domain-tasks { font-size:13px; color:var(--muted); line-height:1.75; text-align:left; }
+    .domain-tasks li { margin-bottom:4px; list-style:none; padding-left:14px; position:relative; }
+    .domain-tasks li::before { content:'·'; position:absolute; left:0; color:var(--muted); }
+
+    /* ── Connection Map ── */
+    .conn-wrap { position:relative; width:100%; overflow:hidden; }
+    .conn-svg { width:100%; display:block; }
+
+    /* 모바일: 연결도 가로 스크롤 */
+    @media(max-width:768px){
+      .conn-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+      .conn-svg { min-width:600px; }
+    }
+
+    /* ── Achievement Cards ── */
+    .ach-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:14px; }
+
+    /* 모바일: 팀원 성과 카드 1열 */
+    @media(max-width:768px){
+      .ach-grid { grid-template-columns: 1fr; gap:12px; }
+      .ach-card { padding:16px; }
+      .ach-avatar { width:44px; height:44px; font-size:18px; margin-bottom:10px; }
+      .ach-person { font-size:15px; }
+      .ach-role { font-size:11px; margin-bottom:10px; }
+      .ach-item { font-size:12px; padding:9px 11px; }
+      .ach-item strong { font-size:12px; }
+    }
+    .ach-card {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:14px; padding:18px 16px; position:relative; overflow:hidden;
+    }
+    .ach-card::before {
+      content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:14px 14px 0 0;
+    }
+    .ach-avatar {
+      width:44px; height:44px; border-radius:50%; margin-bottom:12px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:18px; font-weight:900; color:#fff;
+    }
+    .ach-person { font-size:13px; font-weight:700; margin-bottom:3px; }
+    .ach-role { font-size:10px; color:var(--muted); margin-bottom:12px; font-family:'Inter',monospace; }
+    .ach-list { display:flex; flex-direction:column; gap:7px; }
+    .ach-item {
+      background:var(--surface2); border-radius:8px; padding:8px 10px;
+      font-size:11px; color:var(--muted); line-height:1.5;
+      border-left:2px solid var(--border);
+    }
+    .ach-item strong { color:var(--text); display:block; font-size:11px; margin-bottom:2px; }
+
+
+    
+    
+    
+    /* ── Executive View ── */
+    .exec-hero {
+      position: relative;
+      border-radius: 18px;
+      padding: 48px 52px;
+      margin-bottom: 24px;
+      min-height: 300px;
+      border: none;
+      background-image: url('https://raw.githubusercontent.com/JieunPark99/ai-strategy-dashboard/main/kmu_haegso.jpg');
+      background-size: cover;
+      background-position: center 30%;
+      isolation: isolate;
+    }
+    /* 상단 컬러 바 */
+    .exec-hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 4px;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6, #10b981, #f59e0b);
+      z-index: 10;
+      border-radius: 18px 18px 0 0;
+    }
+    /* 검정 반투명 오버레이 */
+    .exec-hero::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.30);
+      z-index: 1;
+      border-radius: 18px;
+    }
+    /* 모든 자식은 오버레이 위 */
+    .exec-hero > * {
+      position: relative;
+      z-index: 2;
+    }
+    .exec-hero-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 2.5px;
+      text-transform: uppercase; color: #93c5fd !important; margin-bottom: 10px;
+    }
+    .exec-hero-title {
+      font-size: 22px; font-weight: 900; margin-bottom: 6px; line-height: 1.3;
+    }
+    .exec-hero-sub {
+      font-size: 13px; color: var(--muted); line-height: 1.7;
+    }
+    .exec-hero-sub strong { color: var(--text); }
+
+    /* Phase cards */
+    .phase-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+    .phase-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 22px; position: relative; overflow: hidden;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .phase-card:hover { transform: translateY(-3px); box-shadow: 0 10px 32px var(--shadow); }
+    .phase-card-accent {
+      position: absolute; top: 0; left: 0; bottom: 0; width: 4px; border-radius: 16px 0 0 16px;
+    }
+    .phase-card-icon { font-size: 26px; margin-bottom: 12px; }
+    .phase-card-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .phase-card-desc { font-size: 11px; color: var(--muted); margin-bottom: 14px; line-height: 1.6; }
+    .phase-card-why {
+      font-size: 11px; color: var(--summary-text);
+      background: var(--surface2); border-radius: 8px; padding: 9px 12px;
+      border-left: 2px solid var(--border); line-height: 1.6; margin-bottom: 14px;
+    }
+    .phase-card-why strong { color: var(--text); }
+
+    /* Phase steps */
+    .phase-steps { display: flex; gap: 4px; align-items: center; }
+    .phase-step {
+      flex: 1; height: 7px; border-radius: 4px; background: var(--surface2);
+      border: 1px solid var(--border); position: relative; overflow: hidden;
+      transition: background .3s;
+    }
+    .phase-step.done { border-color: transparent; }
+    .phase-step-fill { height: 100%; border-radius: 4px; width: 0; transition: width 1s cubic-bezier(.4,0,.2,1); }
+    .phase-step-label {
+      display: flex; justify-content: space-between;
+      margin-top: 6px; font-size: 9px; color: var(--muted);
+      font-family: 'Inter', monospace;
+    }
+    .phase-status {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 10px; font-weight: 700; padding: 3px 10px;
+      border-radius: 10px; margin-top: 10px;
+    }
+    .ps-active { background: rgba(59,130,246,.15); color: var(--accent); }
+    .ps-done   { background: rgba(16,185,129,.15); color: var(--accent3); }
+    .ps-plan   { background: rgba(245,158,11,.15); color: var(--accent4); }
+
+    /* Highlight timeline */
+    .hl-list { display: flex; flex-direction: column; gap: 0; }
+    .hl-item { display: flex; gap: 0; }
+    .hl-spine { display: flex; flex-direction: column; align-items: center; width: 48px; flex-shrink: 0; }
+    .hl-dot {
+      width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 8px; color: #fff; font-weight: 900; margin-top: 16px;
+    }
+    .hl-line { width: 2px; flex: 1; min-height: 16px; margin-top: 4px; }
+    .hl-body {
+      flex: 1; padding: 12px 0 20px 0;
+    }
+    .hl-week { font-size: 9px; color: var(--muted); font-family: 'Inter', monospace; margin-bottom: 3px; letter-spacing: .5px; }
+    .hl-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; line-height: 1.4; }
+    .hl-body-text { font-size: 12px; color: var(--muted); line-height: 1.6; }
+    .hl-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
+    .hl-tag {
+      font-size: 9px; padding: 2px 8px; border-radius: 8px;
+      font-weight: 700; letter-spacing: .3px;
+    }
+
+    /* Donut chart */
+    .donut-wrap { display: flex; align-items: center; gap: 28px; }
+    .donut-svg { flex-shrink: 0; }
+    .donut-legend { display: flex; flex-direction: column; gap: 10px; }
+    .donut-leg-item { display: flex; align-items: center; gap: 10px; }
+    .donut-leg-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .donut-leg-name { font-size: 12px; font-weight: 600; }
+    .donut-leg-pct { font-size: 11px; color: var(--muted); font-family: 'Inter', monospace; margin-left: auto; padding-left: 12px; }
+
+    @media(max-width:900px){
+      .phase-grid { grid-template-columns: 1fr; }
+      .donut-wrap { flex-direction: column; }
+    }
+
+    /* ── Hero 강화 — 학교 사진 + 어두운 오버레이 ── */
+    .exec-hero {
+      position: relative;
+      border-radius: 20px;
+      padding: 48px 52px;
+      margin-bottom: 24px;
+      overflow: hidden;
+      color: #fff;
+      min-height: 280px;
+      border: none;
+      background-image: url('https://raw.githubusercontent.com/JieunPark99/ai-strategy-dashboard/main/kmu_haegso.jpg');
+      background-size: cover;
+      background-position: center 30%;
+    }
+    /* 상단 컬러 바 */
+    .exec-hero::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6, #10b981, #f59e0b);
+      z-index: 3;
+    }
+    /* 모든 자식 요소가 오버레이 위에 */
+    .exec-hero > * { position: relative; z-index: 2; }
+    .exec-hero-label {
+      font-size: 11px; letter-spacing: 3px; font-weight: 700;
+      text-transform: uppercase; color: #93c5fd;
+      margin-bottom: 14px;
+    }
+    .exec-hero-title {
+      font-size: 32px; font-weight: 900; line-height: 1.25;
+      margin-bottom: 14px; color: #ffffff !important;
+      font-family: 'Inter','Noto Sans KR',sans-serif;
+      text-shadow: 0 2px 12px rgba(0,0,0,.8);
+    }
+    .exec-hero-sub {
+      font-size: 15px; line-height: 1.8; color: #e2e8f0 !important; max-width: 680px;
+      text-shadow: 0 1px 6px rgba(0,0,0,.8);
+    }
+    .exec-hero-sub strong { color: #fff; }
+
+    /* Hero 핵심 숫자 3개 */
+    .hero-stats {
+      display: flex; gap: 0; margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,.2);
+      flex-wrap: wrap;
+    }
+    .hero-stat {
+      text-align: left;
+      padding: 14px 24px;
+      border-right: 1px solid rgba(255,255,255,0.25);
+    }
+    .hero-stat:last-child {
+      border-right: none;
+    }
+    .hero-stat-num {
+      font-size: 46px; font-weight: 900;
+      font-family: 'Inter','Noto Sans KR',sans-serif;
+      line-height: 1; margin-bottom: 6px;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.8), 0 0 24px rgba(0,0,0,0.5);
+      -webkit-font-smoothing: antialiased;
+      letter-spacing: -1px;
+    }
+    .hero-stat-num.blue   { color: #60a5fa; }
+    .hero-stat-num.green  { color: #34d399; }
+    .hero-stat-num.amber  { color: #fbbf24; }
+    .hero-stat-label {
+      font-size: 12px; color: #ffffff; letter-spacing: .5px; font-weight: 600; text-shadow: 0 1px 4px rgba(0,0,0,.8); font-size: 17px;
+    }
+    .hero-stat-desc {
+      font-size: 16px; color: rgba(255,255,255,0.9); margin-top: 2px; text-shadow: 0 1px 4px rgba(0,0,0,.8);
+    }
+    .hero-divider { display: none; }
+
+    /* ── 게이지 (반원) ── */
+    .gauge-wrap {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+    }
+    .gauge-svg { overflow: visible; }
+    .gauge-num {
+      font-size: 28px; font-weight: 900;
+      font-family: 'Inter', monospace;
+      fill: var(--accent4);
+    }
+    .gauge-label {
+      font-size: 11px; color: var(--muted); text-align: center; margin-top: 4px;
+    }
+
+    /* ── 카운트업 숫자 ── */
+    .countup { display: inline-block; }
+
+    @media(max-width:768px){
+      .exec-hero { padding: 28px 20px; }
+      .exec-hero-title { font-size: 22px; }
+      .hero-stats { flex-direction: column; gap: 20px; }
+      .hero-divider { display: none; }
+      .hero-stat-num { font-size: 34px; }
+    }
+
+    @font-face {
+      font-family: 'Inter';
+      src: url('https://raw.githubusercontent.com/JieunPark99/ai-strategy-dashboard/main/fonts/Inter_18pt-Regular.ttf') format('truetype');
+      font-weight: 400; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Inter';
+      src: url('https://raw.githubusercontent.com/JieunPark99/ai-strategy-dashboard/main/fonts/Inter_18pt-Medium.ttf') format('truetype');
+      font-weight: 500; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Inter';
+      src: url('https://raw.githubusercontent.com/JieunPark99/ai-strategy-dashboard/main/fonts/Inter_18pt-SemiBold.ttf') format('truetype');
+      font-weight: 600; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Inter';
+      src: url('https://raw.githubusercontent.com/JieunPark99/ai-strategy-dashboard/main/fonts/Inter_18pt-Bold.ttf') format('truetype');
+      font-weight: 700; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Inter';
+      src: url('https://raw.githubusercontent.com/JieunPark99/ai-strategy-dashboard/main/fonts/Inter_18pt-ExtraBold.ttf') format('truetype');
+      font-weight: 800; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Inter';
+      src: url('https://raw.githubusercontent.com/JieunPark99/ai-strategy-dashboard/main/fonts/Inter_18pt-Black.ttf') format('truetype');
+      font-weight: 900; font-style: normal; font-display: swap;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-area">
+    <img src="./index_files/kmu_logo.jpg" alt="계명대학교" id="kmu-logo" style="height:44px; width:auto; object-fit:contain; display:block; flex-shrink:0;" onerror="this.onerror=null; this.src=&#39;data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAZAAA/+EDLWh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8APD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMwNjcgNzkuMTU3NzQ3LCAyMDE1LzAzLzMwLTIzOjQwOjQyICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIiB4bWxuczpzdFJlZj0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlUmVmIyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxNSBXaW5kb3dzIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjQ5NjQ3QjVDRURBQTExRTY5MzgyRjM0MjQzMEMyMzA5IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjQ5NjQ3QjVERURBQTExRTY5MzgyRjM0MjQzMEMyMzA5Ij4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6NDk2NDdCNUFFREFBMTFFNjkzODJGMzQyNDMwQzIzMDkiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6NDk2NDdCNUJFREFBMTFFNjkzODJGMzQyNDMwQzIzMDkiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz7/7gAOQWRvYmUAZMAAAAAB/9sAhAABAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgIDAwMDAwMDAwMDAQEBAQEBAQIBAQICAgECAgMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwP/wAARCAGnAjUDAREAAhEBAxEB/8QBAQABAAICAgMBAQAAAAAAAAAAAAYJCAoCBwQFCwMBAQEAAQQDAQEAAAAAAAAAAAAABwQFBggCAwkBChAAAAYCAQIBBwkCBwgIDxADAAIDBAUGAQcIEQkSIRMUtRZ2NzFU1FaW1heXCkEVUWEid7c4OXEyIyS2GFh4kbFCVSe4GRrwgaHBUmLS0zSUJSaHKJjR8XIzQ3PEdZXF1TZXp0hoKVl5EQACAQMCBAIDBw0IEAQDCQAAAQIRAwQFBiExEgdBE1FhInGBMrMUdAiRsUJSsiNzFTV1FjY3odFy0pO0VRfwwWKCkqIzQ1PTJDRUlGUJw6QnGOHxJqNEhMQlRVZ2OP/aAAwDAQACEQMRAD8A3kaFQqK6otMdu6ZU3rl7U624dOnFbhnDl05cQzDOXTrOWGMmMbOPLkATH8ONefUKl/ZSF+ggB+HGvPqFS/spC/QQA/DjXn1Cpf2UhfoIAfhxrz6hUv7KQv0EAPw4159QqX9lIX6CAH4ca8+oVL+ykL9BAD8ONefUKl/ZSF+ggB+HGvPqFS/spC/QQA/DjXn1Cpf2UhfoIAfhxrz6hUv7KQv0EAPw4159QqX9lIX6CAH4ca8+oVL+ykL9BAD8ONefUKl/ZSF+ggB+HGvPqFS/spC/QQA/DjXn1Cpf2UhfoIAfhxrz6hUv7KQv0EAPw4159QqX9lIX6CAH4ca8+oVL+ykL9BAD8ONefUKl/ZSF+ggB+HGvPqFS/spC/QQA/DjXn1Cpf2UhfoIAfhxrz6hUv7KQv0EAPw4159QqX9lIX6CAH4ca8+oVL+ykL9BAD8ONefUKl/ZSF+ggB+HGvPqFS/spC/QQA/DjXn1Cpf2UhfoIAfhxrz6hUv7KQv0EAPw4159QqX9lIX6CAH4ca8+oVL+ykL9BAD8ONefUKl/ZSF+ggB+HGvPqFS/spC/QQA/DjXn1Cpf2UhfoIAfhxrz6hUv7KQv0EAPw4159QqX9lIX6CAH4ca8+oVL+ykL9BAD8ONefUKl/ZSF+ggB+HGvPqFS/spC/QQA/DjXn1Cpf2UhfoIAfhxrz6hUv7KQv0EAPw4159QqX9lIX6CAH4ca8+oVL+ykL9BAD8ONefUKl/ZSF+ggB+HGvPqFS/spC/QQA/DjXn1Cpf2UhfoIAfhxrz6hUv7KQv0EAPw4159QqX9lIX6CAH4ca8+oVL+ykL9BAD8ONefUKl/ZSF+ggB+HGvPqFS/spC/QQA/DjXn1Cpf2UhfoIAfhxrz6hUv7KQv0EAPw4159QqX9lIX6CAH4ca8+oVL+ykL9BAD8ONefUKl/ZSF+ggB+HGvPqFS/spC/QQA/DjXn1Cpf2UhfoIAfhxrz6hUv7KQv0EAPw4159QqX9lIX6CAH4ca8+oVL+ykL9BAD8ONefUKl/ZSF+ggB+HGvPqFS/spC/QQA/DjXn1Cpf2UhfoIAfhxrz6hUv7KQv0EAPw4159QqX9lIX6CAH4ca8+oVL+ykL9BAD8ONefUKl/ZSF+ggB+HGvPqFS/spC/QQA/DjXn1Cpf2UhfoIAhr2jUYt7rbfFLqWG61Vuzo6Hs7C+jmXbS9Awk+6+g9OpEXZ8df8AtugAmWuPh5QvcuqepWIAmwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIW9+IlZ9y7x6814AOOuPh5QvcuqepWIAmwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIW9+IlZ9y7x6814AOOuPh5QvcuqepWIAmwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIW9+IlZ9y7x6814AOOuPh5QvcuqepWIAmwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIW9+IlZ9y7x6814AOOuPh5QvcuqepWIAmwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIW9+IlZ9y7x6814AOOuPh5QvcuqepWIAmwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIW9+IlZ9y7x6814AOOuPh5QvcuqepWIAmwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIW9+IlZ9y7x6814AOOuPh5QvcuqepWIAmwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIW9+IlZ9y7x6814AOOuPh5QvcuqepWIAmwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIW9+IlZ9y7x6814AOOuPh5QvcuqepWIAmwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIW9+IlZ9y7x6814AOOuPh5QvcuqepWIAmwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIW9+IlZ9y7x6814AOOuPh5QvcuqepWIAmwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIW9+IlZ9y7x6814AOOuPh5QvcuqepWIAmwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABC3vxErPuXePXmvABx1x8PKF7l1T1KxAE2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABC3vxErPuXePXmvABx1x8PKF7l1T1KxAE2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABC3vxErPuXePXmvABx1x8PKF7l1T1KxAE2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABC3vxErPuXePXmvABx1x8PKF7l1T1KxAE2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABC3vxErPuXePXmvABx1x8PKF7l1T1KxAE2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABC3vxErPuXePXmvABx1x8PKF7l1T1KxAE2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABC3vxErPuXePXmvABx1x8PKF7l1T1KxAE2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABC3vxErPuXePXmvABx1x8PKF7l1T1KxAE2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABC3vxErPuXePXmvABx1x8PKF7l1T1KxAE2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABC3vxErPuXePXmvABx1x8PKF7l1T1KxAE2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABC3vxErPuXePXmvABx1x8PKF7l1T1KxAE2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABC3vxErPuXePXmvABx1x8PKF7l1T1KxAE2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABC3vxErPuXePXmvABx1x8PKF7l1T1KxAE2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABC3vxErPuXePXmvABx1x8PKF7l1T1KxAE2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABC3vxErPuXePXmvABx1x8PKF7l1T1KxAE2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABC3vxErPuXePXmvABx1x8PKF7l1T1KxAE2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABC3vxErPuXePXmvABx1x8PKF7l1T1KxAE2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABC3vxErPuXePXmvABC6FdIlvRaU3UZ2vJm9PrZD5a0G+PGpsJwrHwGavGlcyydJG/3OS5zg2P9gATD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAD28hfmN0/LrYv3TAEQe3OGzeqy4y0tWMEp95TKXNBvfpZiKTWvMqGKzzXvTslIZIvU2MeTJsdflwAP/Z&#39;;">
+    <div style="width:1px; height:32px; background:var(--border); flex-shrink:0; margin:0 14px;"></div>
+    <h1 style="font-size:20px; font-weight:700; white-space:nowrap; margin:0; color:var(--text);">AI전략팀 업무 대시보드</h1>
+  </div>
+  <!-- 데스크탑 탭 nav — 헤더 안으로 이동, 모바일에서 숨김 -->
+  <nav class="tab-nav" id="desktop-tab-nav">
+    <button class="tab-btn active" onclick="showTab(&#39;executive&#39;, this)">⭐ 성과 요약</button>
+    <button class="tab-btn" onclick="showTab(&#39;overview&#39;, this)">📊 전체 현황</button>
+    <button class="tab-btn" onclick="showTab(&#39;timeline&#39;, this)">📅 주간 흐름</button>
+    <button class="tab-btn" onclick="showTab(&#39;projects&#39;, this)">🚀 프로젝트</button>
+    <button class="tab-btn" onclick="showTab(&#39;members&#39;, this)">👥 팀원별</button>
+    <button class="tab-btn" onclick="showTab(&#39;insights&#39;, this)">💡 인사이트</button>
+  </nav>
+  <div class="header-right">
+    <div class="week-badge" id="week-badge">3월 5주 → 5월 4주</div>
+    <!-- 햄버거 버튼: 모바일에서만 표시 -->
+    <button class="hamburger-btn" id="hamburger-btn" onclick="toggleHamburger()" title="메뉴">☰</button>
+    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="테마 변경">🌙</button>
+  </div>
+</header>
+
+<!-- 햄버거 드롭다운 메뉴: 모바일에서만 표시 -->
+<div class="hamburger-menu" id="hamburger-menu">
+  <button class="hmenu-item active" id="hmenu-executive" onclick="selectHamburgerTab(&#39;executive&#39;, this)">⭐ 성과 요약</button>
+  <button class="hmenu-item" id="hmenu-overview" onclick="selectHamburgerTab(&#39;overview&#39;, this)">📊 전체 현황</button>
+  <button class="hmenu-item" id="hmenu-timeline" onclick="selectHamburgerTab(&#39;timeline&#39;, this)">📅 주간 흐름</button>
+  <button class="hmenu-item" id="hmenu-projects" onclick="selectHamburgerTab(&#39;projects&#39;, this)">🚀 프로젝트</button>
+  <button class="hmenu-item" id="hmenu-members" onclick="selectHamburgerTab(&#39;members&#39;, this)">👥 팀원별</button>
+  <button class="hmenu-item" id="hmenu-insights" onclick="selectHamburgerTab(&#39;insights&#39;, this)">💡 인사이트</button>
+</div>
+
+<main>
+
+<!-- ══════════════════════════════════════════
+     TAB 0: Executive View — 성과 요약
+══════════════════════════════════════════ -->
+<div class="tab-panel active" id="tab-executive">
+
+  <!-- Hero -->
+  <div class="exec-hero">
+    <div class="exec-hero-label">⭐ Executive Summary · AI Strategy Team</div>
+    <div class="exec-hero-title">3월 출범 후 7주 —<br>AI전략팀이 만들어낸 변화</div>
+    <div class="exec-hero-sub">
+      <strong>5개 핵심 프로젝트</strong>를 동시 추진하며 팀 기반 구축부터 실질 운영 단계까지 빠르게 전환했습니다.
+      AI전략위원회 첫 개최 · 부트캠프 설명회 34명 참석 · AI어드바이저 UI 확정 등 가시적 성과를 만들어가고 있습니다.
+    </div>
+    <!-- 핵심 숫자 3개 -->
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-num blue"><span class="countup" data-target="7" data-suffix="주">7주</span></div>
+        <div class="hero-stat-label">누적 보고 기간</div>
+        <div class="hero-stat-desc">3월 5주차 ~ 5월 4주차</div>
+      </div>
+      <div class="hero-divider"></div>
+      <div class="hero-stat">
+        <div class="hero-stat-num green"><span class="countup" data-target="5" data-suffix="개">5개</span></div>
+        <div class="hero-stat-label">핵심 프로젝트</div>
+        <div class="hero-stat-desc">동시 진행 중</div>
+      </div>
+      <div class="hero-divider"></div>
+      <div class="hero-stat">
+        <div class="hero-stat-num green"><span class="countup" data-target="34" data-suffix="명">34명</span></div>
+        <div class="hero-stat-label">부트캠프 설명회 참석</div>
+        <div class="hero-stat-desc">6월 4일 사업 설명회</div>
+      </div>
+      <div class="hero-divider"></div>
+      <div class="hero-stat">
+        <div class="hero-stat-num amber"><span class="countup" data-target="14.25" data-suffix="억" data-decimal="true">14.25억</span></div>
+        <div class="hero-stat-label">총 사업비 규모</div>
+        <div class="hero-stat-desc">집행률 7.7% (6.1 기준)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ① 프로젝트 단계 현황 -->
+  <div class="section-title">① 프로젝트별 현재 단계</div>
+  <div class="phase-grid">
+
+    <!-- 부트캠프 -->
+    <div class="phase-card">
+      <div class="phase-card-accent" style="background:var(--accent3);"></div>
+      <div class="phase-card-icon">🚀</div>
+      <div class="phase-card-name">휴먼AI부트캠프 사업 운영</div>
+      <div class="phase-card-desc">첨단산업 인재양성 국고 지원 사업. 사업비 14.25억원 규모.</div>
+      <div class="phase-card-why">
+        <strong>이 사업이 만드는 변화</strong><br>
+        AI 분야 실무 역량을 갖춘 인재를 대학 교육과정 안에서 직접 양성. 기업 수요 기반 교과목 개발로 산학 연계 강화.
+      </div>
+      <div class="phase-steps" id="ps-bootcamp"><div class="phase-step done"><div class="phase-step-fill" style="background: rgb(16, 185, 129); width: 100%;"></div></div><div class="phase-step done"><div class="phase-step-fill" style="background: rgb(16, 185, 129); width: 100%;"></div></div><div class="phase-step done"><div class="phase-step-fill" style="background: rgb(16, 185, 129); width: 100%;"></div></div><div class="phase-step done"><div class="phase-step-fill" style="background: rgb(16, 185, 129); width: 100%;"></div></div><div class="phase-step"><div class="phase-step-fill" style="background: rgb(16, 185, 129);"></div></div></div>
+      <div class="phase-step-label"><span>기반 구축</span><span>협약·예산</span><span>장비·공간</span><span>프로그램 운영</span><span>성과 창출</span></div>
+      <span class="phase-status ps-active">● 진행 중 — 4단계</span>
+    </div>
+
+    <!-- AI어드바이저 -->
+    <div class="phase-card">
+      <div class="phase-card-accent" style="background:var(--accent);"></div>
+      <div class="phase-card-icon">🤖</div>
+      <div class="phase-card-name">AI어드바이저 시스템 구축</div>
+      <div class="phase-card-desc">학생성공지원을 위한 AI 기반 어드바이저 시스템 구축.</div>
+      <div class="phase-card-why">
+        <strong>이 시스템이 만드는 변화</strong><br>
+        학생 개인 맞춤형 학습·진로 상담을 AI로 지원. 교무·취업·혁신 등 복수 부서 데이터를 통합 활용.
+      </div>
+      <div class="phase-steps" id="ps-advisor"><div class="phase-step done"><div class="phase-step-fill" style="background: rgb(59, 130, 246); width: 100%;"></div></div><div class="phase-step done"><div class="phase-step-fill" style="background: rgb(59, 130, 246); width: 100%;"></div></div><div class="phase-step done"><div class="phase-step-fill" style="background: rgb(59, 130, 246); width: 100%;"></div></div><div class="phase-step done"><div class="phase-step-fill" style="background: rgb(59, 130, 246); width: 100%;"></div></div><div class="phase-step"><div class="phase-step-fill" style="background: rgb(59, 130, 246);"></div></div></div>
+      <div class="phase-step-label"><span>요구사항</span><span>컨설팅</span><span>UI 확정</span><span>현장 실사</span><span>구축</span></div>
+      <span class="phase-status ps-active">● 진행 중 — 4단계</span>
+    </div>
+
+    <!-- AI리터러시 -->
+    <div class="phase-card">
+      <div class="phase-card-accent" style="background:var(--accent2);"></div>
+      <div class="phase-card-icon">📚</div>
+      <div class="phase-card-name">AI리터러시 교육 체계 구축</div>
+      <div class="phase-card-desc">재학생 대상 AI 활용 촉진 및 윤리 의식 강화 교육.</div>
+      <div class="phase-card-why">
+        <strong>이 교육이 만드는 변화</strong><br>
+        AI 윤리·철학 + 실무 활용 2트랙으로 운영. 대학혁신사업 예산 활용, 전교생 대상 AI 기초 역량 체계화.
+      </div>
+      <div class="phase-steps" id="ps-literacy"><div class="phase-step done"><div class="phase-step-fill" style="background: rgb(139, 92, 246); width: 100%;"></div></div><div class="phase-step done"><div class="phase-step-fill" style="background: rgb(139, 92, 246); width: 100%;"></div></div><div class="phase-step done"><div class="phase-step-fill" style="background: rgb(139, 92, 246); width: 100%;"></div></div><div class="phase-step"><div class="phase-step-fill" style="background: rgb(139, 92, 246);"></div></div><div class="phase-step"><div class="phase-step-fill" style="background: rgb(139, 92, 246);"></div></div></div>
+      <div class="phase-step-label"><span>계획 수립</span><span>수요 조사</span><span>설계</span><span>개발</span><span>운영</span></div>
+      <span class="phase-status ps-active">● 진행 중 — 3단계</span>
+    </div>
+
+    <!-- AI전략위원회 -->
+    <div class="phase-card">
+      <div class="phase-card-accent" style="background:var(--accent4);"></div>
+      <div class="phase-card-icon">🏛</div>
+      <div class="phase-card-name">AI전략위원회 운영</div>
+      <div class="phase-card-desc">법률·기술 전문가 포함 교내외 11인 위원회.</div>
+      <div class="phase-card-why">
+        <strong>이 위원회가 만드는 변화</strong><br>
+        대학 AI 정책 방향을 전문가 집단이 함께 결정. AI 가이드라인 제정으로 교내 AI 사용 기준 마련.
+      </div>
+      <div class="phase-steps" id="ps-committee"><div class="phase-step done"><div class="phase-step-fill" style="background: rgb(245, 158, 11); width: 100%;"></div></div><div class="phase-step done"><div class="phase-step-fill" style="background: rgb(245, 158, 11); width: 100%;"></div></div><div class="phase-step"><div class="phase-step-fill" style="background: rgb(245, 158, 11);"></div></div><div class="phase-step"><div class="phase-step-fill" style="background: rgb(245, 158, 11);"></div></div><div class="phase-step"><div class="phase-step-fill" style="background: rgb(245, 158, 11);"></div></div></div>
+      <div class="phase-step-label"><span>위원 구성</span><span>1차 회의</span><span>가이드라인</span><span>정례 운영</span><span>제도화</span></div>
+      <span class="phase-status ps-active">● 진행 중 — 2단계</span>
+    </div>
+
+    <!-- AI토론대회 -->
+    <div class="phase-card">
+      <div class="phase-card-accent" style="background:var(--accent6);"></div>
+      <div class="phase-card-icon">💬</div>
+      <div class="phase-card-name">AI토론대회 기획</div>
+      <div class="phase-card-desc">학생 대상 AI 주제 토론대회 기획 및 운영.</div>
+      <div class="phase-card-why">
+        <strong>이 행사가 만드는 변화</strong><br>
+        AI에 대한 학생들의 비판적 사고 역량 함양. 대학혁신사업과 연계하여 교육 성과 가시화.
+      </div>
+      <div class="phase-steps" id="ps-debate"><div class="phase-step done"><div class="phase-step-fill" style="background: rgb(6, 182, 212); width: 100%;"></div></div><div class="phase-step done"><div class="phase-step-fill" style="background: rgb(6, 182, 212); width: 100%;"></div></div><div class="phase-step"><div class="phase-step-fill" style="background: rgb(6, 182, 212);"></div></div><div class="phase-step"><div class="phase-step-fill" style="background: rgb(6, 182, 212);"></div></div><div class="phase-step"><div class="phase-step-fill" style="background: rgb(6, 182, 212);"></div></div></div>
+      <div class="phase-step-label"><span>기획</span><span>RFP 작성</span><span>업체 선정</span><span>운영</span><span>완료</span></div>
+      <span class="phase-status ps-active">● 진행 중 — 2단계</span>
+    </div>
+
+    <!-- AI도구·자원 -->
+    <div class="phase-card">
+      <div class="phase-card-accent" style="background:var(--accent5);"></div>
+      <div class="phase-card-icon">💻</div>
+      <div class="phase-card-name">AI 도구·컴퓨팅 자원 지원</div>
+      <div class="phase-card-desc">부서·교수·학생 대상 AI 도구 및 GPU 인프라 지원.</div>
+      <div class="phase-card-why">
+        <strong>이 지원이 만드는 변화</strong><br>
+        전교적 AI 활용 기반 조성. 교원·직원이 업무에 AI를 실질적으로 쓸 수 있는 환경 구축.
+      </div>
+      <div class="phase-steps" id="ps-tools"><div class="phase-step done"><div class="phase-step-fill" style="background: rgb(239, 68, 68); width: 100%;"></div></div><div class="phase-step done"><div class="phase-step-fill" style="background: rgb(239, 68, 68); width: 100%;"></div></div><div class="phase-step"><div class="phase-step-fill" style="background: rgb(239, 68, 68);"></div></div><div class="phase-step"><div class="phase-step-fill" style="background: rgb(239, 68, 68);"></div></div><div class="phase-step"><div class="phase-step-fill" style="background: rgb(239, 68, 68);"></div></div></div>
+      <div class="phase-step-label"><span>현황 조사</span><span>도구 도입</span><span>자원 확보</span><span>확산</span><span>정착</span></div>
+      <span class="phase-status ps-active">● 진행 중 — 2단계</span>
+    </div>
+
+  </div>
+
+  <!-- ② 7주 성과 하이라이트 + ③ 업무 구성 -->
+  <div class="grid2">
+
+    <!-- ② 성과 하이라이트 타임라인 -->
+    <div class="card">
+      <div class="card-title"><div class="dot" style="background:var(--accent4)"></div>② 7주 핵심 성과 하이라이트</div>
+      <div class="hl-list">
+
+        <div class="hl-item">
+          <div class="hl-spine">
+            <div class="hl-dot" style="background:var(--accent3);">✓</div>
+            <div class="hl-line" style="background:var(--border);"></div>
+          </div>
+          <div class="hl-body">
+            <div class="hl-week">3월 5주차</div>
+            <div class="hl-title">AI전략팀 공식 출범</div>
+            <div class="hl-body-text">AI전략위원회 11명 위촉 완료. 팀 공간·인력·시스템 기반 구축 착수.</div>
+            <div class="hl-tags">
+              <span class="hl-tag" style="background:rgba(16,185,129,.15);color:var(--accent3);">팀 출범</span>
+              <span class="hl-tag" style="background:rgba(59,130,246,.15);color:var(--accent);">위원회 구성</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hl-item">
+          <div class="hl-spine">
+            <div class="hl-dot" style="background:var(--accent3);">✓</div>
+            <div class="hl-line" style="background:var(--border);"></div>
+          </div>
+          <div class="hl-body">
+            <div class="hl-week">4월 1주차</div>
+            <div class="hl-title">부트캠프 첫 참여교원 간담회 개최</div>
+            <div class="hl-body-text">참여교원 7명 + 처장·교수진 참석. 교과목 개발·하계 교육 방향 첫 협의.</div>
+            <div class="hl-tags">
+              <span class="hl-tag" style="background:rgba(16,185,129,.15);color:var(--accent3);">부트캠프</span>
+              <span class="hl-tag" style="background:rgba(139,92,246,.15);color:var(--accent2);">산학협력</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hl-item">
+          <div class="hl-spine">
+            <div class="hl-dot" style="background:var(--accent3);">✓</div>
+            <div class="hl-line" style="background:var(--border);"></div>
+          </div>
+          <div class="hl-body">
+            <div class="hl-week">4월 4주차</div>
+            <div class="hl-title">분야별 위원회 26명 위촉 완료</div>
+            <div class="hl-body-text">교내외 전문가 26명으로 구성. 기업 수요 기반 교과목 개발의 전문성 확보.</div>
+            <div class="hl-tags">
+              <span class="hl-tag" style="background:rgba(16,185,129,.15);color:var(--accent3);">부트캠프</span>
+              <span class="hl-tag" style="background:rgba(245,158,11,.15);color:var(--accent4);">거버넌스</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hl-item">
+          <div class="hl-spine">
+            <div class="hl-dot" style="background:var(--accent3);">✓</div>
+            <div class="hl-line" style="background:var(--border);"></div>
+          </div>
+          <div class="hl-body">
+            <div class="hl-week">5월 3주차</div>
+            <div class="hl-title">사업운영위원회 구성 — 총장 결재 완료</div>
+            <div class="hl-body-text">교과목 개발(5건·1천만원)·공동운영(100H·2천만원) 공고 배포. 사업 본격 운영 체계 완성.</div>
+            <div class="hl-tags">
+              <span class="hl-tag" style="background:rgba(16,185,129,.15);color:var(--accent3);">부트캠프</span>
+              <span class="hl-tag" style="background:rgba(6,182,212,.15);color:var(--accent6);">예산 집행</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hl-item">
+          <div class="hl-spine">
+            <div class="hl-dot" style="background:var(--accent3);">✓</div>
+            <div class="hl-line" style="background:var(--border);"></div>
+          </div>
+          <div class="hl-body">
+            <div class="hl-week">5월 4주차</div>
+            <div class="hl-title">제1회 AI전략위원회 개최</div>
+            <div class="hl-body-text">11명 중 8명 참석. AI 가이드라인 제정 논의 시작. 대학 AI 정책 거버넌스 공식화.</div>
+            <div class="hl-tags">
+              <span class="hl-tag" style="background:rgba(245,158,11,.15);color:var(--accent4);">위원회</span>
+              <span class="hl-tag" style="background:rgba(139,92,246,.15);color:var(--accent2);">AI 정책</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hl-item">
+          <div class="hl-spine">
+            <div class="hl-dot" style="background:var(--accent3);">✓</div>
+            <div class="hl-line" style="background:transparent;"></div>
+          </div>
+          <div class="hl-body">
+            <div class="hl-week">5월 4주차</div>
+            <div class="hl-title">AI어드바이저 UI 확정 · 부트캠프 설명회 34명 참석</div>
+            <div class="hl-body-text">UI 디자인 2회 미팅 후 확정. 하계 학생 설명회 34명 참석으로 모집 공식 시작.</div>
+            <div class="hl-tags">
+              <span class="hl-tag" style="background:rgba(59,130,246,.15);color:var(--accent);">AI어드바이저</span>
+              <span class="hl-tag" style="background:rgba(16,185,129,.15);color:var(--accent3);">부트캠프</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ③ 업무 구성 도넛 차트 -->
+    <div class="card">
+      <div class="card-title"><div class="dot" style="background:var(--accent2)"></div>③ 7주간 업무 카테고리 구성</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:18px;line-height:1.6;">
+        단순 행정 지원을 넘어 <strong style="color:var(--text)">전략 기획과 사업 운영</strong>이 팀 업무의 핵심을 이루고 있습니다.
+      </div>
+      <div class="donut-wrap">
+        <svg class="donut-svg" width="240" height="240" viewBox="0 0 240 240">
+          <!-- 도넛 차트: 전략기획 28%, 사업운영 32%, 행정예산 25%, 홍보콘텐츠 15% -->
+          <!-- 총 둘레: 2πr = 2*3.14159*54 ≈ 339.3 -->
+          <!-- 각 섹션 stroke-dasharray = (pct/100)*339.3, offset은 누적 -->
+          <!-- 전략기획 28% = 95 / offset 0 -->
+          <circle cx="120" cy="120" r="88" fill="none" stroke="var(--surface2)" stroke-width="34"></circle>
+          <circle cx="120" cy="120" r="88" fill="none" stroke="#3b82f6" stroke-width="34" stroke-dasharray="155 398" stroke-dashoffset="138" stroke-linecap="butt" style="transition:stroke-dasharray 1.2s ease"></circle>
+          <!-- 사업운영 32% = 109 / offset -95 → dashoffset = 85-95 = -10 → 85-95=-10 -->
+          <circle cx="120" cy="120" r="88" fill="none" stroke="#10b981" stroke-width="34" stroke-dasharray="177 376" stroke-dashoffset="-17" stroke-linecap="butt"></circle>
+          <!-- 행정예산 25% = 85 / dashoffset = -10-109 = -119 -->
+          <circle cx="120" cy="120" r="88" fill="none" stroke="#8b5cf6" stroke-width="34" stroke-dasharray="138 415" stroke-dashoffset="-194" stroke-linecap="butt"></circle>
+          <!-- 홍보콘텐츠 15% = 51 / dashoffset = -119-85 = -204 -->
+          <circle cx="120" cy="120" r="88" fill="none" stroke="#f59e0b" stroke-width="34" stroke-dasharray="83 470" stroke-dashoffset="-332" stroke-linecap="butt"></circle>
+          <!-- 중앙 텍스트 -->
+          <text x="120" y="113" text-anchor="middle" font-size="13" fill="var(--muted)" font-family="Space Mono,monospace">7주간</text>
+          <text x="120" y="132" text-anchor="middle" font-size="13" fill="var(--muted)" font-family="Space Mono,monospace">업무 구성</text>
+        </svg>
+        <div class="donut-legend">
+          <div class="donut-leg-item">
+            <div class="donut-leg-dot" style="background:#10b981;"></div>
+            <div>
+              <div class="donut-leg-name">사업 운영</div>
+              <div style="font-size:10px;color:var(--muted);">부트캠프·AI어드바이저·교과목</div>
+            </div>
+            <div class="donut-leg-pct">32%</div>
+          </div>
+          <div class="donut-leg-item">
+            <div class="donut-leg-dot" style="background:#3b82f6;"></div>
+            <div>
+              <div class="donut-leg-name">전략 기획</div>
+              <div style="font-size:10px;color:var(--muted);">위원회·가이드라인·로드맵</div>
+            </div>
+            <div class="donut-leg-pct">28%</div>
+          </div>
+          <div class="donut-leg-item">
+            <div class="donut-leg-dot" style="background:#8b5cf6;"></div>
+            <div>
+              <div class="donut-leg-name">행정 · 예산</div>
+              <div style="font-size:10px;color:var(--muted);">EDWARD·구매·인건비</div>
+            </div>
+            <div class="donut-leg-pct">25%</div>
+          </div>
+          <div class="donut-leg-item">
+            <div class="donut-leg-dot" style="background:#f59e0b;"></div>
+            <div>
+              <div class="donut-leg-name">홍보 · 콘텐츠</div>
+              <div style="font-size:10px;color:var(--muted);">리플렛·설명회·STORY+</div>
+            </div>
+            <div class="donut-leg-pct">15%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 한 줄 인사이트 -->
+      <div style="margin-top:22px;display:flex;flex-direction:column;gap:8px;">
+        <div style="background:var(--surface2);border-radius:9px;padding:11px 14px;border-left:3px solid var(--accent3);font-size:11px;color:var(--summary-text);line-height:1.6;">
+          <strong style="color:var(--text);">사업 운영 + 전략 기획 = 60%</strong><br>
+          AI전략팀은 단순 지원 조직이 아닌, 대학의 AI 전환을 직접 기획하고 실행하는 팀입니다.
+        </div>
+        <div style="background:var(--surface2);border-radius:9px;padding:11px 14px;border-left:3px solid var(--accent4);font-size:11px;color:var(--summary-text);line-height:1.6;">
+          <strong style="color:var(--text);">행정·예산 25%</strong><br>
+          국고 사업 특성상 필수적인 회계·구매 절차가 차지하는 비중으로, 사업 운영의 기반입니다.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /tab-executive -->
+
+<!-- ══════════════════════════════════════════
+     TAB 1: 전체 현황
+══════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-overview">
+
+  <div class="ai-summary">
+    <div class="ai-summary-label">🤖 7주 종합 분석</div>
+    <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:9px;">
+      <li style="font-size:13px;line-height:1.8;color:var(--summary-text);padding-left:18px;position:relative;">
+        <span style="position:absolute;left:0;color:var(--accent);font-weight:900;">›</span>
+        <strong>3월 5주차 팀 출범</strong>을 시작으로 7주간 3대 핵심 축인 <strong>휴먼AI부트캠프 사업 운영</strong>·<strong>AI어드바이저 시스템 구축</strong>·<strong>AI리터러시 교육 설계</strong>를 동시에 추진해왔습니다.
+      </li>
+      <li style="font-size:13px;line-height:1.8;color:var(--summary-text);padding-left:18px;position:relative;">
+        <span style="position:absolute;left:0;color:var(--accent);font-weight:900;">›</span>
+        초기(3~4월 1주)에는 <strong>팀 세팅·EDWARD 과제 개설·인력 채용</strong> 등 기반 구축에 집중하였고, 4월 2~4주에는 <strong>협약 변경·예산 집행·장비 구매 절차</strong>를 본격화했습니다.
+      </li>
+      <li style="font-size:13px;line-height:1.8;color:var(--summary-text);padding-left:18px;position:relative;">
+        <span style="position:absolute;left:0;color:var(--accent3);font-weight:900;">›</span>
+        5월 들어서는 <strong>AI전략위원회 첫 개최</strong>·<strong>부트캠프 설명회 34명 참석</strong>·<strong>AI어드바이저 UI 확정</strong> 등 가시적 성과가 나타나고 있습니다.
+      </li>
+      <li style="font-size:13px;line-height:1.8;color:var(--summary-text);padding-left:18px;position:relative;">
+        <span style="position:absolute;left:0;color:var(--accent4);font-weight:900;">›</span>
+        현재 사업비 집행률 <strong>7.7%</strong>(1.09억/14.25억)로, <strong>하반기 집행 가속화</strong>가 핵심 과제입니다.
+      </li>
+    </ul>
+  </div>
+
+
+  <div class="section-title">7주 누적 핵심 지표</div>
+  <div class="kpi-row">
+    <div class="kpi-card blue">
+      <div class="kpi-label">주간보고 기간</div>
+      <div class="kpi-val">7W</div>
+      <div class="kpi-sub">3월 5주차 ~ 5월 4주차</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">진행 프로젝트</div>
+      <div class="kpi-val">5개</div>
+      <div class="kpi-sub">부트캠프·AI어드바이저·리터러시·위원회·AI활용</div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-label">팀원</div>
+      <div class="kpi-val">5명</div>
+      <div class="kpi-sub">민승기·박지은·강승연·권예은·정성희</div>
+    </div>
+    <div class="kpi-card amber" style="display:flex;align-items:center;gap:16px;">
+      <div style="flex:1;">
+        <div class="kpi-label">사업비 집행률</div>
+        <div class="kpi-val" style="font-size:28px;">7.7%</div>
+        <div class="kpi-sub">1.09억 / 14.25억</div>
+        <div class="kpi-sub">6.1 기준</div>
+      </div>
+      <div class="gauge-wrap" style="flex-shrink:0;">
+        <svg class="gauge-svg" width="100" height="60" viewBox="0 0 100 60">
+          <!-- 배경 반원 -->
+          <path d="M 10 55 A 40 40 0 0 1 90 55" fill="none" stroke="var(--border)" stroke-width="10" stroke-linecap="round"></path>
+          <!-- 진행 반원 (7.7% = 약 14도) -->
+          <path id="gauge-path" d="M 10 55 A 40 40 0 0 1 90 55" fill="none" stroke="#f59e0b" stroke-width="10" stroke-linecap="round" stroke-dasharray="9.6789 125.7" style="transition: stroke-dasharray 1.5s cubic-bezier(.4,0,.2,1)"></path>
+          <text x="50" y="52" text-anchor="middle" font-size="13" font-weight="900" font-family="Space Mono,monospace" fill="#f59e0b">7.7%</text>
+        </svg>
+        <div class="gauge-label">14.25억 중</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">주요 예산 집행 현황</div>
+  <div class="budget-grid" style="margin-bottom:22px;">
+    <div class="budget-item">
+      <div class="budget-label">부트캠프 총 사업비</div>
+      <div class="budget-val">14.25억원</div>
+      <div class="budget-sub">집행 1.09억 (7.7%) / 잔액 약 13.16억</div>
+    </div>
+    <div class="budget-item">
+      <div class="budget-label">교육용 연구장비 구매 계획</div>
+      <div class="budget-val">149,822,000원</div>
+      <div class="budget-sub">로봇AI·NAS·비전처리 실습장비 등</div>
+    </div>
+    <div class="budget-item">
+      <div class="budget-label">간접비 이관</div>
+      <div class="budget-val">71,250,000원</div>
+      <div class="budget-sub">국고의 5% / RCMS 신청 완료</div>
+    </div>
+    <div class="budget-item">
+      <div class="budget-label">사무 가구·PC 설치</div>
+      <div class="budget-val">22,267,000원</div>
+      <div class="budget-sub">가구 8,143,000 + PC·모니터 14,124,000</div>
+    </div>
+    <div class="budget-item">
+      <div class="budget-label">교과목 개발·공동운영 지원</div>
+      <div class="budget-val">30,000,000원</div>
+      <div class="budget-sub">교과목 개발 5건(1천만) + 공동운영 100시간(2천만)</div>
+    </div>
+    <div class="budget-item">
+      <div class="budget-label">AI 도구 구독 (부서원 4인)</div>
+      <div class="budget-val">결제 완료</div>
+      <div class="budget-sub">Claude Pro 2인 + ChatGPT Business 2인</div>
+    </div>
+  </div>
+
+  <div class="section-title">진행 중인 이슈</div>
+  <div class="grid2">
+    <div>
+      <div class="issue-item">
+        <div class="issue-title">⚠️ 사업비 집행률 저조 (7.7%)</div>
+        <div class="issue-desc">6.1 기준 1.09억 집행. 연말 불용 방지를 위해 하반기 집행 계획 조기 수립이 필요합니다.</div>
+        <div class="issue-action">→ 직접비 내 회의비·재료비 지원 계획 수립 (권예은)</div>
+      </div>
+      <div class="issue-item">
+        <div class="issue-title">⚠️ AI어드바이저 서버 스펙 확인 필요</div>
+        <div class="issue-desc">리눅스 버전 및 L4 스위치 등 최초 요구내역 외 항목 계약 변경 필요 여부 검토.</div>
+        <div class="issue-action">→ 정만주·장기선 팀장 확인 / 6.8 현장 실사 시 처리</div>
+      </div>
+      <div class="issue-item">
+        <div class="issue-title">⚠️ 하계 몰입형 교육 학점 인정 기준 미확정</div>
+        <div class="issue-desc">15시간당 1학점 방안 검토 중이나 교무교직팀 확인 필요.</div>
+        <div class="issue-action">→ 교무교직팀 공식 확인 요청</div>
+      </div>
+    </div>
+    <div>
+      <div class="issue-item">
+        <div class="issue-title">📋 모두의연구소 예산 괴리 문제</div>
+        <div class="issue-desc">요청금액 2.8억 vs 국고 10% 이내 집행 가능금액 1.425억. 시간당 단가 협의 필요(9,000원×45H×100명=4,050만원).</div>
+        <div class="issue-action">→ 이주화 교수가 모두연 측에 입장 전달 완료</div>
+      </div>
+      <div class="issue-item">
+        <div class="issue-title">📋 원인행위품의서 결재 대기 다수</div>
+        <div class="issue-desc">주차권·사무가구·기계기구 구매 건 결재 진행 중. 결재 완료 후 즉시 구매 신청.</div>
+        <div class="issue-action">→ 권예은 지속 모니터링</div>
+      </div>
+      <div class="issue-item">
+        <div class="issue-title">📋 산학협력단 공인인증서 매년 갱신 필요</div>
+        <div class="issue-desc">1년 단위 갱신으로 매년 4월 내 EDWARD 재신청 필요 (관리자: 강승연).</div>
+        <div class="issue-action">→ 내년 4월 재신청 일정 캘린더 등록 필요</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /tab-overview -->
+
+
+<!-- ══════════════════════════════════════════
+     TAB 2: 주간 흐름 타임라인
+══════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-timeline">
+
+  <div class="ai-summary">
+    <div class="ai-summary-label">📅 주간별 핵심 흐름</div>
+    <p>
+      <strong>3월 5주(출범)</strong> → <strong>4월 1주(기반 구축)</strong> → <strong>4월 2주(협약·예산)</strong> →
+      <strong>4월 3주(구매·채용)</strong> → <strong>4월 4주(심의·가이드라인)</strong> → <strong>5월 3주(본격 운영)</strong> → <strong>5월 4주(성과 창출)</strong>
+      순으로 팀이 빠르게 안정화되었습니다.
+    </p>
+  </div>
+
+  <div class="mega-tl">
+
+    <!-- 3월 5주 -->
+    <div class="week-block">
+      <div class="week-label-col done">
+        <div class="week-chip">3월 5주</div>
+      </div>
+      <div class="week-content">
+        <div class="week-heading">AI전략팀 출범 · 기반 계획 수립 (기준: 4.6 간부회의)</div>
+        <div class="event-list">
+          <div class="event-item key">
+            <div>
+              <div class="event-name">🏆 AI전략위원회 구성 완료 — 법률·기술 전문가 4명 포함 11명 위촉</div>
+            </div>
+            <span class="tag tag-key">핵심</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">휴먼AI부트캠프 사업단 공간 공사 계획 수립 + 사업 운영 인력 1명 채용 진행</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">AI 기반 학생성공지원시스템 컨설팅 — 이해관계자 인터뷰, 중도이탈 데이터 분석</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item planned">
+            <div>
+              <div class="event-name">[계획] AI리터러시 교육 계획 수립 / 부트캠프 사무공간 조성 / 생성형AI 수요조사</div>
+            </div>
+            <span class="tag tag-plan">계획</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4월 1주 -->
+    <div class="week-block">
+      <div class="week-label-col done">
+        <div class="week-chip">4월 1주</div>
+      </div>
+      <div class="week-content">
+        <div class="week-heading">팀 세팅 완료 · 부트캠프 킥오프 · AI어드바이저 컨설팅 시작</div>
+        <div class="event-list">
+          <div class="event-item done">
+            <div>
+              <div class="event-name">AI전략팀 오피스 세팅 완료 — PC 이동(13일)·가구 설치(14일)·복합기(15일)</div>
+              <div class="event-desc">박지은: 전산개발팀 인수인계 완료, 법인카드·에스원 출입 신청 완료</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item key">
+            <div>
+              <div class="event-name">🏆 부트캠프 제1차 참여교원 간담회 — 교과목 개발·하계몰입형 교육 협의</div>
+              <div class="event-desc">4.10(금), 참여교원 7명 + 처장·이주화 교수·민승기·강승연</div>
+            </div>
+            <span class="tag tag-key">핵심</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">AI어드바이저 EST소프트 관계자 미팅 + 부서별 기능 컨설팅</div>
+              <div class="event-desc">4.15(수) 교무교직팀·취업지원팀·교육혁신팀·학생성공센터 4개 부서</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">EDWARD 부트캠프 연구과제 개설 + RCMS 이체권한 등록 + 공인인증서 발급</div>
+              <div class="event-desc">강승연: 사업 플랫폼 참석 워크숍(용산 로카우스, 4.9)</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item planned">
+            <div>
+              <div class="event-name">[계획] 채용 1명 추가 / AI전략위원회 1차 소집 아젠다 결정 / 법인카드 발급</div>
+            </div>
+            <span class="tag tag-plan">계획</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4월 2주 -->
+    <div class="week-block">
+      <div class="week-label-col done">
+        <div class="week-chip">4월 2주</div>
+      </div>
+      <div class="week-content">
+        <div class="week-heading">협약 변경 · 예산 확인 · 부서 AI 현황 조사</div>
+        <div class="event-list">
+          <div class="event-item done">
+            <div>
+              <div class="event-name">부트캠프 협약변경(통보성) — 예산 항목 용도 변경, 기자재 예산 한도(30%) 준수 확인</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">AI 기반 학생성공지원시스템 컨설팅 — 교무교직·취업지원·대학혁신사업팀 요구사항 분석</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">부서별 AI 도입 현황·혁신사례 조사 + AI 정책 로드맵 기초 데이터 수집</div>
+              <div class="event-desc">박지은: AI토론대회 사업계획 수립 및 예산 신청 시작</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">사업비 카드 발급 신청·과제 연결 / 부트캠프 사무 공간 기자재 구매 신청</div>
+              <div class="event-desc">강승연: 부트캠프 업무 리스트·일정표 작성, 사업단용 매뉴얼 제작 시작</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item planned">
+            <div>
+              <div class="event-name">[계획] GPU 등 컴퓨팅 자원 수요·활용 조사 / 3천만원 미만 장비 구매 리스트 확정</div>
+            </div>
+            <span class="tag tag-plan">계획</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4월 3주 -->
+    <div class="week-block">
+      <div class="week-label-col done">
+        <div class="week-chip">4월 3주</div>
+      </div>
+      <div class="week-content">
+        <div class="week-heading">채용 본격화 · 고가장비 구매 심의 · AI토론대회 RFP 착수</div>
+        <div class="event-list">
+          <div class="event-item done">
+            <div>
+              <div class="event-name">부트캠프 신규 인력 채용 업무 — 사업운영 + 회계 2명 예상</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">고가기자재(3천만↑) 구매 서류 검토 — 조현철 교수 장비 중복성 검사</div>
+              <div class="event-desc">강승연: KIAT 간사 확인(예산 변경·주민세·고가기자재 스펙 변경 등)</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">AI정보처 홈페이지 관리자 권한 취득 + 개인정보보호 자료 최신화</div>
+              <div class="event-desc">박지은: AI현황조사 결과 분석, AI토론대회 RFP 초안 작성</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">주민세 납부 지원 협조문 기안 / 연구비 카드 수령·EDWARD·RCMS 등록</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item planned">
+            <div>
+              <div class="event-name">[계획] AI토론대회 업체 미팅·RFP 보완 / 산학프로젝트 운영안 작성</div>
+            </div>
+            <span class="tag tag-plan">계획</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4월 4주 -->
+    <div class="week-block">
+      <div class="week-label-col done">
+        <div class="week-chip">4월 4주</div>
+      </div>
+      <div class="week-content">
+        <div class="week-heading">2차 협약변경 · 위원회 위촉 26명 · AI가이드라인 검토</div>
+        <div class="event-list">
+          <div class="event-item key">
+            <div>
+              <div class="event-name">🏆 제2차 협약 변경 완료 — 지원기관 사업비 관리기준 + 연구지원인력 정보 반영</div>
+            </div>
+            <span class="tag tag-key">핵심</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">분야별 위원회 위촉 완료 — 기업 수요 반영 교과목 개발 목적, 교내외 26명</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">AI전략위원회 대상 대학 AI 활용 가이드라인 사전 검토 및 의견 제출(5.6까지)</div>
+              <div class="event-desc">5.4 교무회의 처장 발표 "AI정보처 비전과 연구·교육·행정 확산 전략" 준비</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">AI현황조사 결과보고서 작성 + AI토론대회 RFP 구체화 (이스트소프트 견적 요청)</div>
+              <div class="event-desc">강승연: 예산 변경에 따른 EDWARD 과제실행예산·계정과목별 예산 변경 신청</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item planned">
+            <div>
+              <div class="event-name">[계획] 5.8까지 고가장비 심의위원회 안건 제출(2건) / 수정사업계획서 작성</div>
+            </div>
+            <span class="tag tag-plan">계획</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5월 3주 -->
+    <div class="week-block">
+      <div class="week-label-col done">
+        <div class="week-chip">5월 3주</div>
+      </div>
+      <div class="week-content">
+        <div class="week-heading">사업 운영 본격화 · 모두의연구소 협의 · AI어드바이저 데이터 요청</div>
+        <div class="event-list">
+          <div class="event-item key">
+            <div>
+              <div class="event-name">🏆 사업운영위원회 구성 완료 (총장 결재) + 교과목 개발·공동운영 건 품의 완료</div>
+            </div>
+            <span class="tag tag-key">핵심</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">모두의연구소 하계 프로그램 협의 — 국고 10% 이내(1.425억) 집행 방침 결정</div>
+              <div class="event-desc">본회의: 처장·부처장·이주화·김요한·유성근·모두연 박지영팀장 등 참석</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">AI어드바이저 주간업무보고(5.7·11·15) + 테스트용 데이터셋 요청(전산개발팀)</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">교과목 개발 지원금 안내(5건·1천만) + 공동운영(100H·2천만) 공고(~6.5)</div>
+              <div class="event-desc">가구 8,143천원 + PC·모니터 14,124천원 지불 진행</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">신규 직원(권예은·정성희) 합류 — 소모품 구매·업무 리스트·홍보 리플렛 착수</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item planned">
+            <div>
+              <div class="event-name">[계획] 5.21까지 교육용 장비 자료 제출 / AI전략위원회 5.29 개최 / 복합기·프린터 설치</div>
+            </div>
+            <span class="tag tag-plan">계획</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5월 4주 -->
+    <div class="week-block">
+      <div class="week-label-col">
+        <div class="week-chip">5월 4주</div>
+      </div>
+      <div class="week-content">
+        <div class="week-heading">AI전략위원회 개최 · 부트캠프 설명회 · AI어드바이저 UI 확정 ← 현재</div>
+        <div class="event-list">
+          <div class="event-item key">
+            <div>
+              <div class="event-name">🏆 제1회 AI전략위원회 개최 — 11명 중 8명 참석, AI가이드라인 안건 논의</div>
+            </div>
+            <span class="tag tag-key">핵심</span>
+          </div>
+          <div class="event-item key">
+            <div>
+              <div class="event-name">🏆 AI어드바이저 UI 디자인 확정 (5.22·5.29 미팅) → 6.8 현장 실사 예정</div>
+            </div>
+            <span class="tag tag-key">핵심</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">제1차 부트캠프 사업 설명회 — 6.4(목) 34명 참석, STORY+ 하계 학생 모집 시작</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item done">
+            <div>
+              <div class="event-name">AI 도구 구독 결제 완료 — Claude Pro(박지은·정성희) + ChatGPT Business(강승연·권예은)</div>
+            </div>
+            <span class="tag tag-done">완료</span>
+          </div>
+          <div class="event-item planned">
+            <div>
+              <div class="event-name">[계획] 6.8 현장실사 / 6.9 RISE·KT GPU 협의 / 6.11·17 입찰 개찰 / 냉장고·급여결의</div>
+            </div>
+            <span class="tag tag-plan">계획</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /tab-timeline -->
+
+
+<!-- ══════════════════════════════════════════
+     TAB 3: 프로젝트별 진행 현황
+══════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-projects">
+
+  <div class="ai-summary">
+    <div class="ai-summary-label">🚀 프로젝트별 상세 흐름</div>
+    <p>5개 핵심 프로젝트의 <strong>단계별 진행 흐름</strong>과 <strong>현재 상태</strong>를 확인하세요.</p>
+  </div>
+
+  <!-- 프로젝트 1: 부트캠프 -->
+  <div class="card" style="margin-bottom:18px;">
+    <div class="card-title"><div class="dot" style="background:var(--accent3)"></div>① 휴먼AI부트캠프 사업 운영</div>
+    <div class="project-list">
+      <div class="project-row">
+        <div><div class="proj-name">Phase 1. 기반 구축</div><div class="proj-phase">3월 5주 ~ 4월 1주</div></div>
+        <div class="phase-track"><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div></div>
+        <div class="proj-status"><span class="proj-status-badge psb-done">완료</span></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);padding:4px 0 12px;line-height:1.6;">
+        공간 공사 계획 수립 → 행정직원 채용 1명 → EDWARD 과제 개설 → RCMS 이체권한·공인인증서 발급 → 사업 워크숍 참석(용산 로카우스) → 참여교원 간담회(7명) → 법인카드 발급
+      </div>
+      <div class="project-row">
+        <div><div class="proj-name">Phase 2. 협약·예산</div><div class="proj-phase">4월 2~4주</div></div>
+        <div class="phase-track"><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div></div>
+        <div class="proj-status"><span class="proj-status-badge psb-done">완료</span></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);padding:4px 0 12px;line-height:1.6;">
+        1차 협약 변경(통보성) → 간접비 협의(산학협력총괄실) → 2차 협약 변경(관리기준·연구인력 반영) → 예산 변경 EDWARD 반영 → 분야별 위원회 26명 위촉 → 수정사업계획서 작성
+      </div>
+      <div class="project-row">
+        <div><div class="proj-name">Phase 3. 장비·공간 조성</div><div class="proj-phase">4월 2주 ~ 5월 3주</div></div>
+        <div class="phase-track"><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot active"></div><div class="phase-dot next"></div></div>
+        <div class="proj-status"><span class="proj-status-badge psb-active">진행중</span></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);padding:4px 0 12px;line-height:1.6;">
+        사무 공간 기자재 구매 → 가구(814만)·PC·모니터(1,412만) 설치 완료 → 고가기자재(3천만↑) 심의 안건 제출(5.8) → 3천만 미만 교육용 장비 구매 진행 중(예상 1.5억)
+      </div>
+      <div class="project-row">
+        <div><div class="proj-name">Phase 4. 프로그램 운영</div><div class="proj-phase">5월 3주 ~ 현재</div></div>
+        <div class="phase-track"><div class="phase-dot done"></div><div class="phase-dot active"></div><div class="phase-dot next"></div><div class="phase-dot next"></div><div class="phase-dot next"></div></div>
+        <div class="proj-status"><span class="proj-status-badge psb-active">진행중</span></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);padding:4px 0 12px;line-height:1.6;">
+        사업운영위원회 구성(총장 결재) → 교과목 개발·공동운영 공고(~6.5) → 설명회 개최(6.4, 34명) → 하계몰입교육 입찰(6.11 1차 / 6.17 2차 개찰) → TA 선발 절차 진행 중
+      </div>
+    </div>
+    <div class="prog-list" style="margin-top:14px;">
+      <div>
+        <div class="prog-header"><span class="prog-name">전체 진행률</span><span class="prog-pct">45%</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="background: var(--accent3); width: 45%;" data-w="45"></div></div>
+      </div>
+      <div>
+        <div class="prog-header"><span class="prog-name">사업비 집행률</span><span class="prog-pct">7.7%</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="background: var(--accent5); width: 7.7%;" data-w="7.7"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 프로젝트 2: AI어드바이저 -->
+  <div class="card" style="margin-bottom:18px;">
+    <div class="card-title"><div class="dot" style="background:var(--accent)"></div>② AI어드바이저 시스템 구축</div>
+    <div class="project-list">
+      <div class="project-row">
+        <div><div class="proj-name">요구사항 분석·컨설팅</div><div class="proj-phase">3월 5주 ~ 4월 2주</div></div>
+        <div class="phase-track"><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div></div>
+        <div class="proj-status"><span class="proj-status-badge psb-done">완료</span></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);padding:4px 0 12px;line-height:1.6;">
+        이해관계자 인터뷰(4.2) → 시스템 인프라 적절성 점검(4.10) → EST소프트 미팅(4.15) → 교무교직·취업지원·교육혁신·학생성공센터 4개 부서 기능 컨설팅(4.15 13~17시)
+      </div>
+      <div class="project-row">
+        <div><div class="proj-name">UI·디자인 확정</div><div class="proj-phase">5월 ~ 5월 4주</div></div>
+        <div class="phase-track"><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div></div>
+        <div class="proj-status"><span class="proj-status-badge psb-done">완료</span></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);padding:4px 0 12px;line-height:1.6;">
+        주간업무보고(5.7·11·15) → 테스트용 데이터셋 2회 요청 → 수행계획서·WBS 확인 → UI 디자인 미팅(5.22·5.29) → UI 최종 확정
+      </div>
+      <div class="project-row">
+        <div><div class="proj-name">현장 실사·구축</div><div class="proj-phase">6월 이후</div></div>
+        <div class="phase-track"><div class="phase-dot next"></div><div class="phase-dot next"></div><div class="phase-dot next"></div><div class="phase-dot next"></div><div class="phase-dot next"></div></div>
+        <div class="proj-status"><span class="proj-status-badge psb-plan">예정</span></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);padding:4px 0 12px;line-height:1.6;">
+        6.8(월) 현장 실사 — 서버 리눅스 버전 확인·L4 스위치 계약 변경 검토 → 부처장 포함 담당자 미팅(6.4 완료) → 본 구축 진행
+      </div>
+    </div>
+    <div class="prog-list" style="margin-top:14px;">
+      <div>
+        <div class="prog-header"><span class="prog-name">전체 진행률</span><span class="prog-pct">60%</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="background: var(--accent); width: 60%;" data-w="60"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 프로젝트 3: AI리터러시 -->
+  <div class="card" style="margin-bottom:18px;">
+    <div class="card-title"><div class="dot" style="background:var(--accent2)"></div>③ AI리터러시 교육 체계 구축</div>
+    <div class="project-list">
+      <div class="project-row">
+        <div><div class="proj-name">기획·설계</div><div class="proj-phase">3월 5주 ~ 5월 4주</div></div>
+        <div class="phase-track"><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot active"></div><div class="phase-dot next"></div><div class="phase-dot next"></div></div>
+        <div class="proj-status"><span class="proj-status-badge psb-active">진행중</span></div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);padding:4px 0 12px;line-height:1.6;">
+      계획 수립(3월 5주) → AI가이드라인 기반 교육자료 제작 예정 → AI현황 수요조사 실시·분석 → AI활용 촉진+윤리의식 강화 2트랙 설계 확정 → 대학혁신사업 예산 활용 예정 → AI토론대회 RFP 작성 진행 중
+    </div>
+    <div class="prog-list">
+      <div>
+        <div class="prog-header"><span class="prog-name">전체 진행률</span><span class="prog-pct">35%</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="background: var(--accent2); width: 35%;" data-w="35"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 프로젝트 4: AI전략위원회 -->
+  <div class="card" style="margin-bottom:18px;">
+    <div class="card-title"><div class="dot" style="background:var(--accent4)"></div>④ AI전략위원회 운영</div>
+    <div class="project-list">
+      <div class="project-row">
+        <div><div class="proj-name">위원회 구성</div><div class="proj-phase">3월 5주</div></div>
+        <div class="phase-track"><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div></div>
+        <div class="proj-status"><span class="proj-status-badge psb-done">완료</span></div>
+      </div>
+      <div class="project-row">
+        <div><div class="proj-name">제1회 회의 개최</div><div class="proj-phase">5월 4주</div></div>
+        <div class="phase-track"><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div><div class="phase-dot done"></div></div>
+        <div class="proj-status"><span class="proj-status-badge psb-done">완료</span></div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);padding:4px 0 8px;line-height:1.6;">
+      법률·기술 전문가 포함 11명 위촉(3월 5주) → AI가이드라인 사전 검토(4월 4주) → 위원 유선 안내·단체 카카오톡 개설 → 제1회 회의 개최(11명 중 8명 참석) → 회의록 작성(박지은) 수정 중
+    </div>
+  </div>
+
+  <!-- 프로젝트 5: AI 도구·자원 -->
+  <div class="card">
+    <div class="card-title"><div class="dot" style="background:var(--accent6)"></div>⑤ AI 도구·컴퓨팅 자원 지원</div>
+    <div style="font-size:11px;color:var(--muted);padding:0 0 14px;line-height:1.6;">
+      젠스파크(Genspark) 활용 방안 기획(4월 1주) → 부서별 AI 현황 조사 및 정책 로드맵 기초 데이터 수집(4월 2주) → GPU 등 컴퓨팅 자원 수요 조사(5월 3주, 학과장·교수 설문) → AI 도구 구독 결제 완료(4인·5월 4주) → RISE행정팀·KT GPU 협의 예정(6.9)
+    </div>
+    <div class="prog-list">
+      <div>
+        <div class="prog-header"><span class="prog-name">AI 도구 도입 진행률</span><span class="prog-pct">55%</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="background: var(--accent6); width: 55%;" data-w="55"></div></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /tab-projects -->
+
+
+<!-- ══════════════════════════════════════════
+     TAB 4: 팀원별 현황
+══════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-members">
+
+  <div class="ai-summary">
+    <div class="ai-summary-label">👥 팀 구성 &amp; 역할</div>
+    <p>AI전략팀은 <strong>전략 기획 · 사업 운영 · 행정·예산 · 홍보·콘텐츠</strong>의 네 가지 도메인이 유기적으로 맞물려 운영됩니다. 각 팀원이 고유한 전문 영역을 담당하면서 프로젝트별로 협업하는 구조입니다.</p>
+  </div>
+
+  <!-- A. 역할 도메인 맵 -->
+  <div class="section-title">A. 역할 도메인 맵</div>
+  <div class="domain-map">
+
+    <div class="domain-card">
+      <div class="domain-icon">🎯</div>
+      <div class="domain-name">전략 기획</div>
+      <div class="domain-members">
+        <span class="domain-chip" style="background:rgba(59,130,246,.12);color:var(--accent);border-color:rgba(59,130,246,.3)">민승기</span>
+        <span class="domain-chip" style="background:rgba(139,92,246,.12);color:var(--accent2);border-color:rgba(139,92,246,.3)">박지은</span>
+      </div>
+      <ul class="domain-tasks">
+        <li>AI정보처 비전 및 로드맵 수립</li>
+        <li>AI전략위원회 운영·의제 관리</li>
+        <li>AI 가이드라인 검토·제정</li>
+        <li>부서별 AI 현황 조사 및 분석</li>
+        <li>AI토론대회 기획·RFP 작성</li>
+      </ul>
+    </div>
+
+    <div class="domain-card">
+      <div class="domain-icon">🚀</div>
+      <div class="domain-name">사업 운영</div>
+      <div class="domain-members">
+        <span class="domain-chip" style="background:rgba(59,130,246,.12);color:var(--accent);border-color:rgba(59,130,246,.3)">민승기</span>
+        <span class="domain-chip" style="background:rgba(16,185,129,.12);color:var(--accent3);border-color:rgba(16,185,129,.3)">강승연</span>
+      </div>
+      <ul class="domain-tasks">
+        <li>부트캠프 전 주기 운영 관리</li>
+        <li>교과목 개발·공동운영 공고</li>
+        <li>참여교원·연구교수 인사 업무</li>
+        <li>하계 몰입형 교육 준비</li>
+        <li>AI어드바이저 구축 진행</li>
+      </ul>
+    </div>
+
+    <div class="domain-card">
+      <div class="domain-icon">💰</div>
+      <div class="domain-name">행정 · 예산</div>
+      <div class="domain-members">
+        <span class="domain-chip" style="background:rgba(16,185,129,.12);color:var(--accent3);border-color:rgba(16,185,129,.3)">강승연</span>
+        <span class="domain-chip" style="background:rgba(245,158,11,.12);color:var(--accent4);border-color:rgba(245,158,11,.3)">권예은</span>
+        <span class="domain-chip" style="background:rgba(139,92,246,.12);color:var(--accent2);border-color:rgba(139,92,246,.3)">박지은</span>
+      </div>
+      <ul class="domain-tasks">
+        <li>EDWARD·RCMS 예산 집행 관리</li>
+        <li>장비·소모품·가구 구매 행정</li>
+        <li>인건비·기관부담금 지급 처리</li>
+        <li>협약 변경·간사 문의 대응</li>
+        <li>원인행위품의서·지출결의서</li>
+      </ul>
+    </div>
+
+    <div class="domain-card">
+      <div class="domain-icon">📣</div>
+      <div class="domain-name">홍보 · 콘텐츠</div>
+      <div class="domain-members">
+        <span class="domain-chip" style="background:rgba(6,182,212,.12);color:var(--accent6);border-color:rgba(6,182,212,.3)">정성희</span>
+        <span class="domain-chip" style="background:rgba(139,92,246,.12);color:var(--accent2);border-color:rgba(139,92,246,.3)">박지은</span>
+      </div>
+      <ul class="domain-tasks">
+        <li>홍보 리플렛·X배너 제작</li>
+        <li>STORY+ 비교과 프로그램 등록</li>
+        <li>사업 설명회 기획·운영</li>
+        <li>이수증·홈페이지 콘텐츠 관리</li>
+        <li>AI정보처 홈페이지 관리</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- B. 팀원별 주요 성과 카드 -->
+  <div class="section-title">B. 팀원별 주요 성과</div>
+  <div class="ach-grid">
+
+    <!-- 민승기 -->
+    <div class="ach-card" style="border-top-color:var(--accent);">
+      <div class="ach-avatar" style="background:linear-gradient(135deg,#3b82f6,#6366f1)">민</div>
+      <div class="ach-person">민승기</div>
+      <div class="ach-role">전략 기획 · 사업 총괄</div>
+      <div class="ach-list">
+        <div class="ach-item">
+          <strong>🏛 AI전략위원회 첫 회의 개최</strong>
+          법률·기술 전문가 포함 11명 위촉 후 제1회 회의 성공적 개최
+        </div>
+        <div class="ach-item">
+          <strong>🚀 부트캠프 설명회 34명 유치</strong>
+          사업 설명회 기획부터 진행까지 전 과정 완수
+        </div>
+        <div class="ach-item">
+          <strong>🤖 AI어드바이저 UI 확정</strong>
+          4개 부서 기능 컨설팅 → EST소프트 협의 → UI 최종 확정
+        </div>
+        <div class="ach-item">
+          <strong>📋 분야별 위원회 26명 위촉</strong>
+          교내외 전문가 구성, 교과목 개발 기반 마련
+        </div>
+      </div>
+    </div>
+
+    <!-- 박지은 -->
+    <div class="ach-card" style="border-top-color:var(--accent2);">
+      <div class="ach-avatar" style="background:linear-gradient(135deg,#8b5cf6,#ec4899)">박</div>
+      <div class="ach-person">박지은</div>
+      <div class="ach-role">기획 · 행정 · 위원회 운영 · AI 시스템</div>
+      <div class="ach-list">
+        <div class="ach-item">
+          <strong>💻 AI전략팀 대시보드 구축</strong>
+          7주치 주간보고 데이터 기반 팀 성과 대시보드 직접 기획·제작. GitHub Pages 배포 및 운영
+        </div>
+        <div class="ach-item">
+          <strong>📊 부서별 AI 현황 조사 완료</strong>
+          전 부서 응답 수합·분석 후 결과보고서 및 요약서 완성
+        </div>
+        <div class="ach-item">
+          <strong>📝 대학혁신사업 계획서 제출</strong>
+          AI리터러시·AI토론대회 2건 사업계획서 수정·최종 제출
+        </div>
+        <div class="ach-item">
+          <strong>🤖 AI 활용 기획서 작성</strong>
+          젠스파크(Genspark) 기능 분석 및 처장 지시 기반 AI 활용 기획서 초안 완성
+        </div>
+      </div>
+    </div>
+
+    <!-- 강승연 -->
+    <div class="ach-card" style="border-top-color:var(--accent3);">
+      <div class="ach-avatar" style="background:linear-gradient(135deg,#10b981,#0ea5e9)">강</div>
+      <div class="ach-person">강승연</div>
+      <div class="ach-role">예산 · 회계 · 구매 행정</div>
+      <div class="ach-list">
+        <div class="ach-item">
+          <strong>💰 간접비 7,125만원 이관 완료</strong>
+          RCMS 신청 및 EDWARD 자금이체 전 과정 처리
+        </div>
+        <div class="ach-item">
+          <strong>📦 사무 공간 인프라 구축</strong>
+          가구·PC·모니터·복합기 등 사업단 공간 완전 구비
+        </div>
+        <div class="ach-item">
+          <strong>📋 교과목 개발 공고 설계·배포</strong>
+          개발 5건(1천만)·공동운영 100시간(2천만) 구조 설계
+        </div>
+        <div class="ach-item">
+          <strong>🗂 사업 공유폴더 체계 구축</strong>
+          5인 공유 아카이브 환경 설계 및 운영 개시
+        </div>
+      </div>
+    </div>
+
+    <!-- 권예은 -->
+    <div class="ach-card" style="border-top-color:var(--accent4);">
+      <div class="ach-avatar" style="background:linear-gradient(135deg,#f59e0b,#ef4444)">권</div>
+      <div class="ach-person">권예은</div>
+      <div class="ach-role">구매 행정 · 업무 체계화</div>
+      <div class="ach-list">
+        <div class="ach-item">
+          <strong>🛒 사업단 소모품·가구 구매 착수</strong>
+          MRO 소모품·주차권·사무가구·기계기구 등 구매 행정 전담
+        </div>
+        <div class="ach-item">
+          <strong>📋 1차년도 업무리스트 체계화</strong>
+          기안 및 기자재 리스트 정리, 사업 전체 업무 가시화
+        </div>
+        <div class="ach-item">
+          <strong>📑 급여결의서 체계 준비</strong>
+          행정직원·참여교원 6월 급여결의서 제출 준비
+        </div>
+        <div class="ach-item">
+          <strong>📋 1차년도 업무 체계 정비</strong>
+          팀 전체 1차년도 업무리스트 시트 작성·정리. 사업 전체 업무를 한눈에 파악할 수 있는 기반 마련
+        </div>
+      </div>
+    </div>
+
+    <!-- 정성희 -->
+    <div class="ach-card" style="border-top-color:var(--accent6);">
+      <div class="ach-avatar" style="background:linear-gradient(135deg,#06b6d4,#3b82f6)">정</div>
+      <div class="ach-person">정성희</div>
+      <div class="ach-role">홍보 · 교육 프로그램</div>
+      <div class="ach-list">
+        <div class="ach-item">
+          <strong>🎉 설명회 34명 참석 성과</strong>
+          리플렛·X배너·STORY+ 등록·다과 준비 등 설명회 전 과정 기획
+        </div>
+        <div class="ach-item">
+          <strong>📄 홍보물 일체 제작 완료</strong>
+          홍보 리플렛 시안 완성, X배너 제작 진행
+        </div>
+        <div class="ach-item">
+          <strong>🎓 이수증 초안 작성</strong>
+          하계 몰입형 프로그램 이수증 서식 초안 완성
+        </div>
+        <div class="ach-item">
+          <strong>📁 산학프로젝트 신청서 착수</strong>
+          기업 안내용 예산집행내역서·보고서 초안 작성 시작
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+    <!-- C. 프로젝트 연결도 -->
+  <div class="section-title">C. 팀원 × 프로젝트 연결도</div>
+  <div class="card" style="margin-bottom:22px;">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px;">
+      팀원 이름 위에 마우스를 올리면 해당 팀원의 연결선만 표시됩니다.
+    </div>
+    <div class="conn-wrap">
+
+      <svg id="conn-svg" viewBox="0 0 900 330" xmlns="http://www.w3.org/2000/svg" style="width:70%;display:block;font-family:inherit;margin:0 auto;">
+
+        <!-- ── 프로젝트 노드 (왼쪽) ── -->
+        <rect x="10" y="18" width="168" height="36" rx="9" fill="rgba(16,185,129,.12)" stroke="rgba(16,185,129,.4)" stroke-width="1.5"></rect>
+        <text x="94" y="40" text-anchor="middle" font-size="12" font-weight="700" fill="#10b981">휴먼AI부트캠프</text>
+
+        <rect x="10" y="74" width="168" height="36" rx="9" fill="rgba(59,130,246,.12)" stroke="rgba(59,130,246,.4)" stroke-width="1.5"></rect>
+        <text x="94" y="96" text-anchor="middle" font-size="12" font-weight="700" fill="#3b82f6">AI어드바이저</text>
+
+        <rect x="10" y="130" width="168" height="36" rx="9" fill="rgba(139,92,246,.12)" stroke="rgba(139,92,246,.4)" stroke-width="1.5"></rect>
+        <text x="94" y="152" text-anchor="middle" font-size="12" font-weight="700" fill="#8b5cf6">AI리터러시 교육</text>
+
+        <rect x="10" y="186" width="168" height="36" rx="9" fill="rgba(245,158,11,.12)" stroke="rgba(245,158,11,.4)" stroke-width="1.5"></rect>
+        <text x="94" y="208" text-anchor="middle" font-size="12" font-weight="700" fill="#f59e0b">AI전략위원회</text>
+
+        <rect x="10" y="242" width="168" height="36" rx="9" fill="rgba(6,182,212,.12)" stroke="rgba(6,182,212,.4)" stroke-width="1.5"></rect>
+        <text x="94" y="264" text-anchor="middle" font-size="12" font-weight="700" fill="#06b6d4">AI 도구·자원</text>
+
+        <!-- ── 연결선 (기본 opacity 0.14, class로 팀원 구분) ── -->
+        <!-- 민승기 -->
+        <path class="cl cl-min" d="M178,36  C380,36  480,72  628,84" stroke="#3b82f6" stroke-width="2" fill="none" opacity="0.14"></path>
+        <path class="cl cl-min" d="M178,92  C380,92  480,80  628,78" stroke="#3b82f6" stroke-width="2" fill="none" opacity="0.14"></path>
+        <path class="cl cl-min" d="M178,148 C360,138 480,108 628,86" stroke="#3b82f6" stroke-width="1.8" fill="none" opacity="0.14"></path>
+        <path class="cl cl-min" d="M178,204 C360,188 480,138 628,92" stroke="#3b82f6" stroke-width="1.8" fill="none" opacity="0.14"></path>
+        <path class="cl cl-min" d="M178,260 C360,238 480,168 628,98" stroke="#3b82f6" stroke-width="1.8" fill="none" opacity="0.14"></path>
+
+        <!-- 박지은 -->
+        <path class="cl cl-park" d="M178,92  C380,98  500,130 698,150" stroke="#8b5cf6" stroke-width="2" fill="none" opacity="0.14"></path>
+        <path class="cl cl-park" d="M178,148 C380,152 500,154 698,156" stroke="#8b5cf6" stroke-width="2" fill="none" opacity="0.14"></path>
+        <path class="cl cl-park" d="M178,204 C380,208 500,172 698,162" stroke="#8b5cf6" stroke-width="1.8" fill="none" opacity="0.14"></path>
+
+        <!-- 강승연 -->
+        <path class="cl cl-kang" d="M178,36  C380,78  480,188 628,210" stroke="#10b981" stroke-width="2" fill="none" opacity="0.14"></path>
+        <path class="cl cl-kang" d="M178,260 C380,260 480,238 628,222" stroke="#10b981" stroke-width="1.8" fill="none" opacity="0.14"></path>
+
+        <!-- 권예은 -->
+        <path class="cl cl-kwon" d="M178,36  C380,98  520,220 758,244" stroke="#f59e0b" stroke-width="2" fill="none" opacity="0.14"></path>
+
+        <!-- 정성희 -->
+        <path class="cl cl-jung" d="M178,36  C380,58  540,136 836,158" stroke="#06b6d4" stroke-width="2" fill="none" opacity="0.14"></path>
+        <path class="cl cl-jung" d="M178,260 C400,260 580,212 836,172" stroke="#06b6d4" stroke-width="1.8" fill="none" opacity="0.14"></path>
+
+        <!-- ── 팀원 노드 — onmouseover/onmouseout 인라인 ── -->
+
+        <!-- 민승기 -->
+        <g onmouseover="connHover(&#39;min&#39;)" onmouseout="connReset()" style="cursor:pointer;">
+          <circle cx="658" cy="84" r="34" fill="rgba(59,130,246,.15)" stroke="rgba(59,130,246,.45)" stroke-width="2"></circle>
+          <text x="658" y="79" text-anchor="middle" font-size="13" font-weight="900" fill="#3b82f6">민승기</text>
+          <text x="658" y="95" text-anchor="middle" font-size="9" fill="#94a3b8">전략 총괄</text>
+        </g>
+
+        <!-- 박지은 -->
+        <g onmouseover="connHover(&#39;park&#39;)" onmouseout="connReset()" style="cursor:pointer;">
+          <circle cx="718" cy="156" r="34" fill="rgba(139,92,246,.15)" stroke="rgba(139,92,246,.45)" stroke-width="2"></circle>
+          <text x="718" y="151" text-anchor="middle" font-size="13" font-weight="900" fill="#8b5cf6">박지은</text>
+          <text x="718" y="167" text-anchor="middle" font-size="9" fill="#94a3b8">기획·AI시스템</text>
+        </g>
+
+        <!-- 강승연 -->
+        <g onmouseover="connHover(&#39;kang&#39;)" onmouseout="connReset()" style="cursor:pointer;">
+          <circle cx="658" cy="216" r="34" fill="rgba(16,185,129,.15)" stroke="rgba(16,185,129,.45)" stroke-width="2"></circle>
+          <text x="658" y="211" text-anchor="middle" font-size="13" font-weight="900" fill="#10b981">강승연</text>
+          <text x="658" y="227" text-anchor="middle" font-size="9" fill="#94a3b8">예산·행정</text>
+        </g>
+
+        <!-- 권예은 -->
+        <g onmouseover="connHover(&#39;kwon&#39;)" onmouseout="connReset()" style="cursor:pointer;">
+          <circle cx="794" cy="246" r="34" fill="rgba(245,158,11,.15)" stroke="rgba(245,158,11,.45)" stroke-width="2"></circle>
+          <text x="794" y="241" text-anchor="middle" font-size="13" font-weight="900" fill="#f59e0b">권예은</text>
+          <text x="794" y="257" text-anchor="middle" font-size="9" fill="#94a3b8">구매·행정</text>
+        </g>
+
+        <!-- 정성희 -->
+        <g onmouseover="connHover(&#39;jung&#39;)" onmouseout="connReset()" style="cursor:pointer;">
+          <circle cx="860" cy="160" r="34" fill="rgba(6,182,212,.15)" stroke="rgba(6,182,212,.45)" stroke-width="2"></circle>
+          <text x="860" y="155" text-anchor="middle" font-size="13" font-weight="900" fill="#06b6d4">정성희</text>
+          <text x="860" y="171" text-anchor="middle" font-size="9" fill="#94a3b8">홍보·콘텐츠</text>
+        </g>
+
+        <text x="450" y="318" text-anchor="middle" font-size="10" fill="#64748b">
+          팀원 이름에 마우스를 올리면 해당 연결선만 표시됩니다
+        </text>
+      </svg>
+    </div>
+  </div>
+
+</div><!-- /tab-members -->
+
+
+<!-- ══════════════════════════════════════════
+     TAB 5: 인사이트
+══════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-insights">
+
+  <div class="ai-summary">
+    <div class="ai-summary-label">💡 7주 업무 흐름 인사이트</div>
+    <p>주간보고 전체 데이터에서 발견한 <strong>업무 패턴 · 구조적 흐름 · 리스크 · 추천 액션</strong>입니다.</p>
+  </div>
+
+  <div class="section-title">업무 패턴 &amp; 흐름 분석</div>
+  <div class="insight-grid">
+
+    <!-- 01 -->
+    <div class="insight-box blue">
+      <div class="insight-num">01</div>
+      <div class="insight-icon-col">📈</div>
+      <div class="insight-content">
+        <div class="insight-title">기반 구축 → 운영 전환 완료</div>
+        <div class="insight-body">3~4월은 <strong>EDWARD 과제 개설·협약 변경·채용·공간 조성</strong> 등 인프라 구축에 집중됐고, 5월부터는 설명회·위원회·교과목 공고 등 <strong>실질 운영 단계로 전환</strong>이 이루어졌습니다. 7주 만의 구조 전환은 매우 빠른 속도입니다.</div>
+      </div>
+    </div>
+
+    <!-- 02 -->
+    <div class="insight-box green">
+      <div class="insight-num">02</div>
+      <div class="insight-icon-col">🔄</div>
+      <div class="insight-content">
+        <div class="insight-title">협약 변경이 사업 속도를 좌우</div>
+        <div class="insight-body">1차·2차 협약 변경(4월 2~4주)이 예산 집행·장비 구매·인력 운영의 선행 조건이었습니다. <strong>협약 변경 완료 이후 구매·채용·공고가 연쇄적으로 가속</strong>되는 패턴이 확인됩니다. 향후 변경 사항은 최대한 조기에 처리하는 것이 유리합니다.</div>
+      </div>
+    </div>
+
+    <!-- 03 -->
+    <div class="insight-box purple">
+      <div class="insight-num">03</div>
+      <div class="insight-icon-col">🔗</div>
+      <div class="insight-content">
+        <div class="insight-title">3대 프로젝트 동시 중요 단계 진입</div>
+        <div class="insight-body">부트캠프(하계 입찰)·AI어드바이저(현장 실사)·AI리터러시(교육안 설계)가 <strong>6월에 동시에 핵심 단계</strong>에 진입합니다. 각 프로젝트의 의사결정 시점이 겹치는 6월 초를 집중 관리 포인트로 설정해야 합니다.</div>
+      </div>
+    </div>
+
+    <!-- 04 -->
+    <div class="insight-box amber">
+      <div class="insight-num">04</div>
+      <div class="insight-icon-col">💰</div>
+      <div class="insight-content">
+        <div class="insight-title">예산 집행 구조적 후반 쏠림</div>
+        <div class="insight-body">현재 집행률 7.7%. 교육용 장비(1.5억)·모두연 프로그램(최대 1.4억)·하계몰입교육 용역이 <strong>6~7월에 집중 예정</strong>입니다. 대형 지출 건의 행정 절차(품의→계약→납품)가 예상보다 길어질 수 있어 선제적 일정 관리가 필요합니다.</div>
+      </div>
+    </div>
+
+    <!-- 05 -->
+    <div class="insight-box cyan">
+      <div class="insight-num">05</div>
+      <div class="insight-icon-col">⏳</div>
+      <div class="insight-content">
+        <div class="insight-title">AI토론대회 — 기획 착수 대비 진행 지연</div>
+        <div class="insight-body">4월 1주 착수했으나 5월 4주까지 RFP 미확정 상태입니다. <strong>기획-업체선정-실행까지 약 3개월</strong>이 필요한 행사 특성상, 6월 내 업체를 확정하지 못하면 하반기 개최 일정 전체가 압박을 받을 수 있습니다.</div>
+      </div>
+    </div>
+
+    <!-- 06 -->
+    <div class="insight-box red">
+      <div class="insight-num">06</div>
+      <div class="insight-icon-col">📋</div>
+      <div class="insight-content">
+        <div class="insight-title">결재 대기 건이 구매 속도의 병목</div>
+        <div class="insight-body">원인행위품의서·지출결의서 결재 대기 건이 복수 존재하며, <strong>결재 완료 → 구매 신청 → 납품 검수</strong>의 파이프라인이 길어 실제 집행까지 시간이 소요됩니다. 결재 진행 상황의 주기적 모니터링이 집행률 제고의 핵심입니다.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section-title">다음 4주 핵심 액션 플랜</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:20px;border-top:3px solid var(--accent);">
+      <div style="font-size:19px;font-weight:700;margin-bottom:12px;color:var(--accent);">🔵 즉시</div>
+      <div style="font-size:12px;color:var(--muted);font-weight:600;margin-bottom:10px;letter-spacing:.5px;">6월 1~2주</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="font-size:18px;color:var(--summary-text);line-height:1.6;padding:10px 14px;background:var(--surface2);border-radius:8px;border-left:3px solid var(--accent);">6.8 AI어드바이저 현장 실사 — 서버 스펙 확인 및 계약 변경 검토</div>
+        <div style="font-size:18px;color:var(--summary-text);line-height:1.6;padding:10px 14px;background:var(--surface2);border-radius:8px;border-left:3px solid var(--accent);">6.9 RISE행정팀·KT GPU 협의</div>
+        <div style="font-size:18px;color:var(--summary-text);line-height:1.6;padding:10px 14px;background:var(--surface2);border-radius:8px;border-left:3px solid var(--accent);">6.11 하계몰입교육 1차 개찰 → 6.17 최종 선정</div>
+        <div style="font-size:18px;color:var(--summary-text);line-height:1.6;padding:10px 14px;background:var(--surface2);border-radius:8px;border-left:3px solid var(--accent);">교과목 개발·공동운영 신청 마감(6.5) 후 사업운영위원회 개최 준비</div>
+      </div>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:20px;border-top:3px solid var(--accent4);">
+      <div style="font-size:19px;font-weight:700;margin-bottom:12px;color:var(--accent4);">🟡 단기</div>
+      <div style="font-size:12px;color:var(--muted);font-weight:600;margin-bottom:10px;letter-spacing:.5px;">6월 3~4주</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="font-size:18px;color:var(--summary-text);line-height:1.6;padding:10px 14px;background:var(--surface2);border-radius:8px;border-left:3px solid var(--accent4);">교육용 연구장비(1.5억) 구매 절차 완료</div>
+        <div style="font-size:18px;color:var(--summary-text);line-height:1.6;padding:10px 14px;background:var(--surface2);border-radius:8px;border-left:3px solid var(--accent4);">AI토론대회 RFP 최종본 확정 및 업체 선정</div>
+        <div style="font-size:18px;color:var(--summary-text);line-height:1.6;padding:10px 14px;background:var(--surface2);border-radius:8px;border-left:3px solid var(--accent4);">AI리터러시 2트랙 교육자료 제작 착수 (대학혁신사업 예산 활용)</div>
+        <div style="font-size:18px;color:var(--summary-text);line-height:1.6;padding:10px 14px;background:var(--surface2);border-radius:8px;border-left:3px solid var(--accent4);">결재 대기 건 일괄 현황 점검 및 집행 가속화</div>
+      </div>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:20px;border-top:3px solid var(--accent2);">
+      <div style="font-size:19px;font-weight:700;margin-bottom:12px;color:var(--accent2);">🟣 중기</div>
+      <div style="font-size:12px;color:var(--muted);font-weight:600;margin-bottom:10px;letter-spacing:.5px;">7월~</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="font-size:18px;color:var(--summary-text);line-height:1.6;padding:10px 14px;background:var(--surface2);border-radius:8px;border-left:3px solid var(--accent2);">하계몰입교육 운영 (TA 선발·이수증·학점인정 확정)</div>
+        <div style="font-size:18px;color:var(--summary-text);line-height:1.6;padding:10px 14px;background:var(--surface2);border-radius:8px;border-left:3px solid var(--accent2);">AI어드바이저 본격 구축 착수</div>
+        <div style="font-size:18px;color:var(--summary-text);line-height:1.6;padding:10px 14px;background:var(--surface2);border-radius:8px;border-left:3px solid var(--accent2);">2026.9 AI전환 비전 선포식 및 AI연구센터 라운지 개소 준비</div>
+        <div style="font-size:18px;color:var(--summary-text);line-height:1.6;padding:10px 14px;background:var(--surface2);border-radius:8px;border-left:3px solid var(--accent2);">사업비 집행률 30% 이상 달성 목표</div>
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /tab-insights -->
+
+</main>
+
+<script>
+/* ═══════════════════════════════════════
+   A. 카운트업 애니메이션
+═══════════════════════════════════════ */
+function animateCountUp(el) {
+  var target = parseFloat(el.getAttribute('data-target'));
+  var suffix = el.getAttribute('data-suffix') || '';
+  var isDecimal = el.getAttribute('data-decimal') === 'true';
+  var duration = 1400;
+  var start = null;
+
+  function step(timestamp) {
+    if (!start) start = timestamp;
+    var progress = Math.min((timestamp - start) / duration, 1);
+    // easeOutQuart
+    var ease = 1 - Math.pow(1 - progress, 4);
+    var current = target * ease;
+    el.textContent = (isDecimal ? current.toFixed(2) : Math.floor(current)) + suffix;
+    if (progress < 1) requestAnimationFrame(step);
+    else el.textContent = (isDecimal ? target.toFixed(2) : target) + suffix;
+  }
+  requestAnimationFrame(step);
+}
+
+function runCountUps() {
+  var els = document.querySelectorAll('.countup');
+  for (var i = 0; i < els.length; i++) {
+    animateCountUp(els[i]);
+  }
+}
+
+/* ═══════════════════════════════════════
+   C. 게이지 애니메이션
+═══════════════════════════════════════ */
+function animateGauge() {
+  var path = document.getElementById('gauge-path');
+  if (!path) return;
+  // 반원 총 둘레 ≈ π × r = π × 40 ≈ 125.7
+  var total = 125.7;
+  var pct = 7.7 / 100;
+  var filled = total * pct; // ≈ 9.7
+  setTimeout(function() {
+    path.setAttribute('stroke-dasharray', filled + ' ' + total);
+  }, 300);
+}
+
+/* ═══════════════════════════════════════
+   페이지 로드 & 탭 전환 시 실행
+═══════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', function() {
+  // 성과요약 탭이 기본이므로 바로 실행
+  runCountUps();
+  animateGauge();
+});
+
+/* ═══════════════════════════════════════
+   햄버거 메뉴
+═══════════════════════════════════════ */
+function toggleHamburger() {
+  var menu = document.getElementById('hamburger-menu');
+  var btn  = document.getElementById('hamburger-btn');
+  var isOpen = menu.classList.contains('open');
+  if (isOpen) {
+    menu.classList.remove('open');
+    btn.classList.remove('open');
+    btn.textContent = '☰';
+  } else {
+    menu.classList.add('open');
+    btn.classList.add('open');
+    btn.textContent = '✕';
+  }
+}
+
+function selectHamburgerTab(id, el) {
+  // 드롭다운 닫기
+  document.getElementById('hamburger-menu').classList.remove('open');
+  var hBtn = document.getElementById('hamburger-btn');
+  hBtn.classList.remove('open');
+  hBtn.textContent = '☰';
+
+  // hmenu-item active 업데이트
+  document.querySelectorAll('.hmenu-item').forEach(function(b){ b.classList.remove('active'); });
+  el.classList.add('active');
+
+  // 탭 패널 전환 (데스크탑 탭 버튼도 동기화)
+  document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('tab-' + id).classList.add('active');
+
+  // 데스크탑 탭 버튼 active 동기화
+  var desktopBtns = document.querySelectorAll('.tab-btn');
+  for (var i = 0; i < desktopBtns.length; i++) {
+    var onclick = desktopBtns[i].getAttribute('onclick') || '';
+    if (onclick.indexOf("'" + id + "'") >= 0) {
+      desktopBtns[i].classList.add('active');
+      break;
+    }
+  }
+
+  // 프로그레스 바 애니메이션
+  setTimeout(function(){
+    document.querySelectorAll('.prog-fill').forEach(function(bar){
+      bar.style.width = '0';
+      setTimeout(function(){ bar.style.width = bar.dataset.w + '%'; }, 50);
+    });
+    // 성과요약 탭: 카운트업 재실행
+    if (id === 'executive') {
+      // 숫자 초기화 후 재실행
+      var els = document.querySelectorAll('.countup');
+      for (var i = 0; i < els.length; i++) {
+        els[i].textContent = '0';
+        animateCountUp(els[i]);
+      }
+    }
+    // 전체현황 탭: 게이지 재실행
+    if (id === 'overview') {
+      var gaugePath = document.getElementById('gauge-path');
+      if (gaugePath) {
+        gaugePath.setAttribute('stroke-dasharray', '0 126');
+        animateGauge();
+      }
+    }
+  }, 50);
+}
+
+// 화면 바깥 클릭 시 메뉴 닫기
+document.addEventListener('click', function(e) {
+  var menu = document.getElementById('hamburger-menu');
+  var btn  = document.getElementById('hamburger-btn');
+  if (!menu || !btn) return;
+  if (!menu.contains(e.target) && !btn.contains(e.target)) {
+    menu.classList.remove('open');
+    btn.classList.remove('open');
+    btn.textContent = '☰';
+  }
+});
+
+/* ═══════════════════════════════════════
+   연결도 호버 인터랙션 — 전역 함수 (인라인 onmouseover 호출)
+═══════════════════════════════════════ */
+function connHover(member) {
+  var svg = document.getElementById('conn-svg');
+  if (!svg) return;
+  var all = svg.querySelectorAll('.cl');
+  var mine = svg.querySelectorAll('.cl-' + member);
+  for (var i = 0; i < all.length; i++) {
+    all[i].setAttribute('opacity', '0.04');
+    all[i].setAttribute('stroke-width', '1.5');
+  }
+  for (var j = 0; j < mine.length; j++) {
+    mine[j].setAttribute('opacity', '1');
+    mine[j].setAttribute('stroke-width', '3');
+  }
+}
+function connReset() {
+  var svg = document.getElementById('conn-svg');
+  if (!svg) return;
+  var all = svg.querySelectorAll('.cl');
+  for (var i = 0; i < all.length; i++) {
+    all[i].setAttribute('opacity', '0.14');
+    all[i].setAttribute('stroke-width', '2');
+  }
+}
+
+/* ═══════════════════════════════════════
+   Phase step 초기화 (Executive View)
+═══════════════════════════════════════ */
+function initPhaseSteps() {
+  var phases = {
+    'ps-bootcamp':  [1,1,1,1,0],
+    'ps-advisor':   [1,1,1,1,0],
+    'ps-literacy':  [1,1,1,0,0],
+    'ps-committee': [1,1,0,0,0],
+    'ps-debate':    [1,1,0,0,0],
+    'ps-tools':     [1,1,0,0,0]
+  };
+  var colors = {
+    'ps-bootcamp':  '#10b981',
+    'ps-advisor':   '#3b82f6',
+    'ps-literacy':  '#8b5cf6',
+    'ps-committee': '#f59e0b',
+    'ps-debate':    '#06b6d4',
+    'ps-tools':     '#ef4444'
+  };
+  Object.keys(phases).forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = '';
+    phases[id].forEach(function(done) {
+      var step = document.createElement('div');
+      step.className = 'phase-step' + (done ? ' done' : '');
+      var fill = document.createElement('div');
+      fill.className = 'phase-step-fill';
+      fill.style.background = colors[id];
+      step.appendChild(fill);
+      el.appendChild(step);
+      if (done) {
+        setTimeout(function(){ fill.style.width = '100%'; }, 300);
+      }
+    });
+  });
+}
+document.addEventListener('DOMContentLoaded', initPhaseSteps);
+
+/* ═══════════════════════════════════════
+   탭 전환
+═══════════════════════════════════════ */
+function showTab(id, el) {
+  document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('tab-' + id).classList.add('active');
+  if (el) {
+    el.classList.add('active');
+    try { el.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'center' }); } catch(e){}
+  }
+  setTimeout(function(){
+    document.querySelectorAll('.prog-fill').forEach(function(bar){
+      bar.style.width = '0';
+      setTimeout(function(){ bar.style.width = bar.dataset.w + '%'; }, 50);
+    });
+
+  }, 50);
+}
+setTimeout(function(){
+  document.querySelectorAll('.prog-fill').forEach(function(el){
+    el.style.width = el.dataset.w + '%';
+  });
+}, 400);
+
+/* ═══════════════════════════════════════
+   테마 토글
+═══════════════════════════════════════ */
+var themeBtn = document.getElementById('theme-toggle');
+var isLight = true; // 기본값: 라이트 모드
+function toggleTheme() {
+  isLight = !isLight;
+  document.documentElement.classList.toggle('light', isLight);
+  themeBtn.textContent = isLight ? '🌙' : '☀️';
+  try { localStorage.setItem('theme', isLight ? 'light' : 'dark'); } catch(e){}
+}
+(function(){
+  try {
+    var saved = localStorage.getItem('theme');
+    if (saved === 'dark') {
+      // 사용자가 명시적으로 다크 선택
+      isLight = false;
+      document.documentElement.classList.remove('light');
+      themeBtn.textContent = '☀️';
+    } else {
+      // 기본값: 라이트 모드
+      isLight = true;
+      document.documentElement.classList.add('light');
+      themeBtn.textContent = '🌙';
+    }
+  } catch(e){ themeBtn.textContent = '🌙'; }
+})();
+
+
+</script>
+
+
+</body></html>
